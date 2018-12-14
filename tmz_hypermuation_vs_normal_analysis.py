@@ -40,18 +40,160 @@ gliomaAnalysisMuts['quadNuc'] = gliomaAnalysisMuts.apply(lambda row: mutationSig
 
 gliomaSummaryInfoTMZ = maf_analysis_utils.summarize_signature_attribution_for_case(gliomaAnalysisMuts, spectraEnrichmentDict['Signature.11'])
 gliomaSummaryInfoAging = maf_analysis_utils.summarize_signature_attribution_for_case(gliomaAnalysisMuts, spectraEnrichmentDict['Signature.1'])
+#we calculate the portion of TMZ mutations at the weakly enriched TMZ motif
+weakTMZmotif = set(['ACTA', 'CCTA', 'GCTA', 'TCTA'])
+gliomaSummaryInfoWeakTMZ = maf_analysis_utils.summarize_signature_attribution_for_case(gliomaAnalysisMuts, weakTMZmotif)
 #We also need to count the number of mutations that occur at NOTaging and NOTtmz motifs
 allTrinucs = analysis_utils.get_all_possible_quadNucs()
-nonTmzNonAgingTrinucs = allTrinucs - spectraEnrichmentDict['Signature.11'] - spectraEnrichmentDict['Signature.1']
+nonTmzNonAgingTrinucs = allTrinucs - spectraEnrichmentDict['Signature.11'] - spectraEnrichmentDict['Signature.1'] - weakTMZmotif
 gliomaSummaryInfoOther = maf_analysis_utils.summarize_signature_attribution_for_case(gliomaAnalysisMuts, nonTmzNonAgingTrinucs)
 
-gliomaSummaryInfoTMZ['mutSource'] = 'TMZ'
-gliomaSummaryInfoAging['mutSource'] = 'Aging'
-gliomaSummaryInfoOther['mutSource'] = 'Other'
+gliomaSummaryInfoTMZ['mutSource'] = 'TMZ (top 8 tmz most favored trinucs)'
+gliomaSummaryInfoWeakTMZ['mutSource'] = 'probably TMZ (TMZ 9th-12th most favored trinucs)'
+gliomaSummaryInfoAging['mutSource'] = 'Aging (aging top four favored trinucs)'
+gliomaSummaryInfoOther['mutSource'] = 'Other (non C>T mutations)'
 
-concatDf = pd.concat([gliomaSummaryInfoTMZ, gliomaSummaryInfoAging, gliomaSummaryInfoOther])
+concatDf = pd.concat([gliomaSummaryInfoTMZ, gliomaSummaryInfoAging, gliomaSummaryInfoOther, gliomaSummaryInfoWeakTMZ])
 
 #LETS plot this shit!
-concatDf.to_csv('')
+concatDf.to_csv('~/Desktop/dataForLocalPlotting/gliomaMutAttributionData.tsv', sep='\t', index=False)
+
+
+
+
+###############################################################################
+#Do gene comparissons
+tmzStrongMotif = spectraEnrichmentDict['Signature.11']
+weakTMZmotif = set(['ACTA', 'CCTA', 'GCTA', 'TCTA'])
+
+gliomaNonTMZhyperIDs = set(gliomaSigs[(gliomaSigs['Signature.11'] < .25) & (gliomaSigs['Nmut'] < 100)]['Tumor_Sample_Barcode'])
+gliomaTMZhyperIDs = set(gliomaSigs[(gliomaSigs['Signature.11'] >= .25) & (gliomaSigs['Nmut'] >= 100)]['Tumor_Sample_Barcode'])
+
+for tid in gliomaTMZhyperIDs:
+    print tid
+
+oncogenicMutColNames = set(['Likely Oncogenic', 'Oncogenic', 'Predicted Oncogenic'])
+oncogenicGliomaMuts = gliomaAnalysisMuts[gliomaAnalysisMuts['oncogenic'].isin(oncogenicMutColNames)]
+nonOncogenicGliomaMuts = gliomaAnalysisMuts[~gliomaAnalysisMuts['oncogenic'].isin(oncogenicMutColNames)]
+
+nTMZHypermutated = len(gliomaTMZhyperIDs)
+oncogenicMutsInTMZHypers = oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]
+oncogenicMutsInNonHyperGlioma = oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)]
+top50MostMutatedGenesInHyper = [i[0] for i in Counter(oncogenicMutsInTMZHypers['Hugo_Symbol']).most_common(50)]
+
+#calculate fractions mutated for the non hypermuated cases
+nNonHyperGlioma = len(gliomaNonTMZhyperIDs)
+nonHyperFracDict = dict()
+for gene in top50MostMutatedGenesInHyper:
+    nCasesWithGeneMutated = len(set(oncogenicMutsInNonHyperGlioma[oncogenicMutsInNonHyperGlioma['Hugo_Symbol'] == gene]['Tumor_Sample_Barcode']))
+    nonHyperFracDict[gene] = 1.0*nCasesWithGeneMutated/nNonHyperGlioma
+
+
+geneLengthDict = analysis_utils.get_gene_length_info(bedFilePath = pathPrefix + '/ifs/res/pwg/data/gencode/gencode.v19.all_gene_bounds.bed')
+
+concatDfList = []
+for gene in top50MostMutatedGenesInHyper:
+    curSumDf = maf_analysis_utils.asses_per_case_mut_info_for_gene(oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)], gene, tmzStrongMotif | weakTMZmotif)
+    curSumDf['ordering'] = curSumDf.shape[0]
+    if gene in geneLengthDict:
+        curSumDf['geneLength'] = geneLengthDict[gene]
+    else:
+        curSumDf['geneLength'] = None
+    fracMutatedInHypermutators = 1.0*curSumDf.shape[0]/nTMZHypermutated
+    #if nonHyperFracDict[gene] == 0:
+    #curSumDf['ratio'] = None
+    #else:
+    curSumDf['ratio'] = nonHyperFracDict[gene]/fracMutatedInHypermutators
+    concatDfList.append(curSumDf)
+concatDf = pd.concat(concatDfList)
+
+print concatDf['ratio']
+
+concatDf.to_csv('~/Desktop/dataForLocalPlotting/gliomaHypermutationDistribution.tsv', sep='\t', index=False)
+
+###########################################
+
+print analysis_utils.normalize_counter(Counter(gliomaAnalysisMuts[gliomaAnalysisMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)]['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+print '_________'
+print analysis_utils.normalize_counter(Counter(gliomaAnalysisMuts[gliomaAnalysisMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+
+
+print analysis_utils.normalize_counter(Counter(oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)]['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+print '_________'
+print analysis_utils.normalize_counter(Counter(oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+
+#TODO properly get per case frequencies for each gene with dropping duplicates
+#print analysis_utils.normalize_counter(Counter(oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)]['Hugo_Symbol'].drop_duplicates(subset=['Tumor_Sample_Barcode'])['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+#print '_________'
+#print analysis_utils.normalize_counter(Counter(oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)].drop_duplicates(subset=['Tumor_Sample_Barcode'])['Hugo_Symbol']), nDigitsRound=3).most_common(20)
+
+oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)].drop_duplicates(subset=['Tumor_Sample_Barcode']).shape
+v = oncogenicGliomaMuts[oncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]
+print v[v['Hugo_Symbol'] == 'TP53'].shape
+print len(set(v[v['Hugo_Symbol'] == 'TP53']['Tumor_Sample_Barcode']))
+d = v[v['Hugo_Symbol'] == 'TP53'].drop_duplicates(subset=['Tumor_Sample_Barcode'])
+print d[d['Hugo_Symbol'] == 'TP53'].shape
+
+for x in gliomaTMZhyperIDs:
+    print x
+
+ptenNonOncogenicTMZhyper = ptenNonOncogenicGliomaMuts[ptenNonOncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]
+ptenOncogenicTMZhyper = ptenOncogenicGliomaMuts[ptenOncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaTMZhyperIDs)]
+
+ptenNonOncogenicNonTMZ = ptenNonOncogenicGliomaMuts[ptenNonOncogenicGliomaMuts['Tumor_Sample_Barcode'].isin(gliomaNonTMZhyperIDs)]
+
+
+print ptenOncogenicTMZhyper[ptenOncogenicTMZhyper['quadNuc'].isin(tmzStrongMotif)].shape, ptenOncogenicTMZhyper.shape
+
+#hotspotMaf = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/hotspotReducedAnalysis10-19.tsv')
+hotspotMaf['HGVSp']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+hotspotMaf.columns.values
+
+
+
+
+
+
+
+
+
+
+
 
 
