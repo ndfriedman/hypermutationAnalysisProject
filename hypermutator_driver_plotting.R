@@ -66,8 +66,6 @@ plt<-plot_grid(
 
 ggsave('~/Desktop/testHypermutatorsAndDrivers.pdf', plot=plt, width = 7*numberOfColumns, height = 7*numberOfRows, units = c("in"))
 
-df$nMutToHotspotRatio
-df$Nmut
 
 compars <- list( 
   c("TMZ", "UV"))
