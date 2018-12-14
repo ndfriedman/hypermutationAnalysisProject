@@ -69,6 +69,12 @@ cDict = analysis_utils.get_cancer_type_information(cancerTypeDfPath = pathPrefix
 impactSigs['cancer_type'] = impactSigs['pid'].apply(lambda x: cDict[x] if x in cDict else None)
 allTrinucs = analysis_utils.get_all_possible_quadNucs()
 
+ids = impactSigs[(impactSigs['Nmut'] > 100) & (impactSigs['cancer_type'] != 'Colorectal Cancer') & (impactSigs['cancer_type'] != 'Endometrial Cancer') & (impactSigs['mean_10'] > .25)]['cancer_type']
+for v in ids:
+    print v
+
+impactSigs[impactSigs['Tumor_Sample_Barcode'] == 'P-0005270-T02-IM6']['mean_6']
+
 ###################************************#######################
 #GLIOMA analyses
 gliomaSigs = impactSigs[impactSigs['cancer_type'] == 'Glioma']
