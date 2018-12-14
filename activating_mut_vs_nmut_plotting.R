@@ -30,8 +30,6 @@ if(!exists("foo", mode="function")) source("/Users/friedman/Desktop/mnt/ifs/work
 
 df <- read.table('/Users/friedman/Desktop/mnt/ifs/work/taylorlab/friedman/myAdjustedDataFiles/mafSummaryData/mafOncogenicMutSummaryData.tsv',sep = '\t', header=TRUE)
 
-df$activatingMutToNmutRatio
-df$
 #df$hotspotMutToNmutRatio df$oncogenicMutToNmutRatio df$nHotspotMuts df$nOncogenicMuts
 dfAdj <- df[df$Nmut < 500 & df$Nmut>50,]
 
