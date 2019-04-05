@@ -155,6 +155,9 @@ twoSamplePreTMZGliomas = gliomasWithoutTMZ[gliomasWithoutTMZ['pid'].isin(tmzEvid
 twoSamplePatients = set(twoSamplePreTMZGliomas['pid'])
 twoSamplePostTMZGliomas = gliomasWithTMZ[gliomasWithTMZ['pid'].isin(twoSamplePatients)]
 
+for i in twoSamplePostTMZGliomas['Tumor_Sample_Barcode']:
+    print i
+
 gliomaMuts = mafWithInfo[mafWithInfo['Tumor_Sample_Barcode'].isin(set(gliomaSigs['Tumor_Sample_Barcode']))]
 
 print gliomaMuts[gliomaMuts['Tumor_Sample_Barcode'] == 'P-0000883-T01-IM3']['oncogenic']
