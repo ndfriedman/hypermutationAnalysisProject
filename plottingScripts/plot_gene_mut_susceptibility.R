@@ -26,31 +26,59 @@ layer_gene_plot <- function(df){
   return(alignedPlot)
 }
 
-truncating_gene_plot <- function(df, title="title"){
-  #plt1 <- ggplot(df, aes(x=reorder(Gene, -NPoleStopCodonPossible), y=NPoleStopCodonPossible))+
-  #  geom_bar(stat='identity')+
-  #  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-  #  ggtitle(title)
-  #plt2 <- ggplot(df, aes(x=reorder(Gene, -NPoleStopCodonPossible), y=NObsercedTruncAtMotif))+
-  #  geom_bar(stat='identity')+
-  #  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
-  #  ylab('n oncogenic mutations at POLE motif')
-  #alignedPlot <- plot_grid(
-  #  plt1, plt2,
-  #  align='hv', nrow=2, ncol=1
-  #)
-  #return(alignedPlot)
-  plt <- ggplot(df, aes(x=NPoleStopCodonPossible, y=NObsercedTruncAtMotif))+
-    #geom_text(aes(label=Gene))+
-    geom_point()+
-    geom_smooth(method='lm',formula=y~x)
+quadNucMutSusceptibilityPlot <- function(df, title=''){
+  plt <- ggplot(df, aes(x=reorder(QuadNuc, orderingVal), y=frac_oncogenic, fill=factor(orderingVal)))+
+    geom_bar(stat = 'identity')+
+    scale_fill_manual(values=c('#1EBFF0', '#050708', '#E62725', '#CBCACB', '#A1CF64', '#EDC8C5'))+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+    ggtitle(title)+
+    xlab('Mutation and Motif')+
+    theme(legend.position="none")+
+    labs(caption = "data=mutation_modeling_workspace.py--from /ifs/work/taylorlab/friedman/myAdjustedDataFiles/impact341SimulatedMutationDataSummary.tsv; plot:plot_gene_mut_susceptibility.R")
   return(plt)
 }
 
+
+
+#####STUFF WITH FUNCTIONS
+
+
+#oncogenic mut susceptibility based on quad nuc motif of a mutation
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/quadNucOncogenicInfo.tsv', sep = '\t', header=TRUE)
+plt <- quadNucMutSusceptibilityPlot(df, title='Percentage of mutations at a quad nuc that are oncogenic in impact')
+ggsave('~/Desktop/plot.pdf', plot=plt,  width = 20, height = 6, units = c("in"), limitsize = FALSE)
+#
+#observed mut susceptibility
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/quadNucOncogenicInfo_Observed.tsv', sep = '\t', header=TRUE)
+plt <- quadNucMutSusceptibilityPlot(df, title='Observed fraction of mutations that are oncogenic at quadnuc')
+barP <- ggplot(df, aes(x=reorder(QuadNuc, orderingVal), y=Nmut))+
+  geom_bar(stat='identity')+
+  get_empty_theme()+
+  theme(axis.title.y=element_text(hjust = .2, size=7, face="bold"))+
+  ylab('N mutations at motif in impact')
+alginedPlot <- plot_grid(
+  plt, barP, 
+  align='v',nrow=2, ncol=1, rel_heights = c(1,.2)
+)
+ggsave('~/Desktop/plot.pdf', plot=alginedPlot,  width = 20, height = 6, units = c("in"), limitsize = FALSE)
+  
+##########SIGNATURE BASED MUT SUSCEPTIBILITY  
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/oncogenicSusceptibilityBySignature.tsv', sep = '\t', header=TRUE)
+plt<- ggplot(df, aes(x=reorder(Signature_Name, ExpectedFracOfMutsOncogenic), y=ExpectedFracOfMutsOncogenic))+
+  geom_bar(stat='identity')+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  ylab('Change of a single mutation in IMPACT panel being oncogenic')+
+  xlab('Signature')+
+  ggtitle('Signature propensity to cause oncogenic mutations in IMPACT 341')
+
+ggsave('~/Desktop/plot.pdf', plot=plt,  width = 10, height = 10, units = c("in"), limitsize = FALSE)
+
+
+######################  
 #MUT susceptibility as number of distinct oncogenic mutations/size of impact region
 df <- read.table('~/Desktop/WORK/dataForLocalPlotting/geneOncogenicInfo.tsv',sep = '\t', header=TRUE)
 plt <- layer_gene_plot(df)
-
 ggsave('~/Desktop/plot.pdf', plot=plt,  width = 75, height = 8, units = c("in"), limitsize = FALSE)
 
 
