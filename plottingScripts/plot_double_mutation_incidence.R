@@ -26,6 +26,55 @@ plot_averages_with_bar <- function(df, title){
   return(plt)
 }
 
+plot_mutation_count_histogram <- function(df, col, title, ymax){
+  df <- my.rename(df, col, "xAxisVal")
+  colors <- c(rep("gray",2), rep("black",6))
+  plt <- ggplot(df, aes(x=xAxisVal))+
+    geom_histogram(binwidth=1, fill=colors)+
+    ggtitle(title)+
+    ylim(0,ymax)+
+    xlim(-1,6)+
+    ylab('n cases')+
+    xlab('N oncogenic mutations in gene')
+  return(plt)
+}
+
+plot_double_mutation_comparissons <- function(df, segmentStartXParam, segmentStartYParam, segmentEndXParam, segmentEndYParam,
+                                              yLabel='Fraction of cases with oncogenic multiples', xLabel='Fraction of oncogenic gene mutated cases that are oncogenic multiplets', title=''){
+  df <- my.rename(df, segmentStartXParam, "segmentStartX")
+  df <- my.rename(df, segmentStartYParam, "segmentStartY")
+  df <- my.rename(df, segmentEndXParam, "segmentEndX")
+  df <- my.rename(df, segmentEndYParam, "segmentEndY")
+  
+  plt <- ggplot(df, aes(x=segmentStartX, y=segmentStartY, label=textLabel))+
+    geom_text(colour='red')+
+    #geom_point(colour='red', size=0.75)+
+    geom_text(aes(x=segmentEndX, y=segmentEndY), colour='blue')+
+    #geom_point(aes(x=segmentEndX, y=segmentEndY), colour='blue', size=0.75)+
+    geom_segment(aes(xend=segmentEndX, yend=segmentEndY), alpha=0.4)+
+    xlim(0,1)+
+    ylim(0,1)+
+    xlab(xLabel)+
+    ylab(yLabel)+
+    ggtitle(title)
+  
+  return(plt)
+}
+
+plot_double_mutation_by_gene <- function(df){
+  plt <- ggplot(df, aes(x=reorder(geneClassification, orderingVal), y=frac_cohort_multiplet_oncogenic_hypermutator))+
+    geom_boxplot(fatten = NULL)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
+    stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = 0.75, size = 1, linetype = "solid")+
+    geom_text(aes(label=displayGeneName))+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+    ggtitle('Double mutation incidence as a function of Gene Mutation type')+
+    ylab('Fraction of hypermutators of cancer type with double oncogenic mutation')+
+    xlab('Gene Classification and Cancer Type')
+  plt <- plt+ geom_jitter(shape=16, position=position_jitter(0.1))
+  plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting: plot_double_mutation_incidence.R")
+  return(plt)
+}
 
 ##########ENDOMETRIAL CANCER###############
 dfEndometrialDouble <- read.table('~/Desktop/WORK/dataForLocalPlotting/endometrial_double_mutation_incidence.tsv',sep = '\t', header=TRUE)
@@ -121,4 +170,193 @@ massiveAlignedPlot <- plot_grid(
 )
 
 ggsave('~/Desktop/massiveAligned.pdf', plot=massiveAlignedPlot,  width = 20, height = 50, units = c("in"), limitsize = FALSE)
+
+
+#################
+
+#DIFFERENT VERSION WITH mutation graphs
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/mutationNumberDistributions.tsv',sep = '\t', header=TRUE)
+
+arrPltEndo <- plot_grid(
+plot_mutation_count_histogram(df, "n_PTEN_muts", "PTEN", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_PIK3CA_muts", "PIK3CA", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_ARID1A_muts", "ARID1A", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_TP53_muts", "TP53", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_NF1_muts", "NF1", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_FAT1_muts", "FAT1", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_BRCA2_muts", "BRCA2", dim(df)[1]),
+plot_mutation_count_histogram(df, "n_PIK3R1_muts", "PIK3R1", dim(df)[1]),
+nrow = 2, ncol = 4
+)
+
+#arrPlt <- plot_grid(pten, pik3ca, arid1a, tp53, nf1, fat1, brca2, apc, nrow = 2, ncol = 4)
+
+ggsave('~/Desktop/pltEnd.pdf', plot=arrPltEndo,  width = 15, height = 10, units = c("in"), limitsize = FALSE)
+
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/mutationNumberDistributions2.tsv',sep = '\t', header=TRUE)
+
+df$PDB
+
+arrPltColorectal <- plot_grid(
+  plot_mutation_count_histogram(df, "n_APC_muts", "APC", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PIK3CA_muts", "PIK3CA", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_KRAS_muts", "KRAS", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_TP53_muts", "TP53", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_BRAF_muts", "BRAF", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_FBXW7_muts", "FBXW7", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_SMAD4_muts", "SMAD4", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PTEN_muts", "PTEN", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MSH6_muts", "MSH6", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MSH2_muts", "MSH2", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MLH1_muts", "MLH1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_NF1_muts", "NF1", dim(df)[1]),
+  nrow = 3, ncol = 4
+)
+
+ggsave('~/Desktop/pltColorectal.pdf', plot=arrPltColorectal,  width = 15, height = 10, units = c("in"), limitsize = FALSE)
+
+#GLIOMA GLIOMA GLIOMA
+df <-read.table('~/Desktop/WORK/dataForLocalPlotting/mutationNumberDistributions_glioma.tsv',sep = '\t', header=TRUE)
+
+arrPltGlioma <- plot_grid(
+  plot_mutation_count_histogram(df, "n_TERT_muts", "TERT", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PTEN_muts", "PTEN", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_IDH1_muts", "IDH1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_TP53_muts", "TP53", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_NF1_muts", "NF1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PIK3CA_muts", "PIK3CA", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_EGFR_muts", "EGFR", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_NOTCH1_muts", "NOTCH1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MSH6_muts", "MSH6", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MSH2_muts", "MSH2", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_MLH1_muts", "MLH1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PMS2_muts", "PMS2", dim(df)[1]),
+  nrow = 3, ncol = 4
+)
+
+ggsave('~/Desktop/plt2.pdf', plot=arrPltGlioma,  width = 15, height = 10, units = c("in"), limitsize = FALSE)
+
+
+df <-read.table('~/Desktop/WORK/dataForLocalPlotting/mutationNumberDistributions_bladder.tsv',sep = '\t', header=TRUE)
+
+arrPltBladder <- plot_grid(
+  plot_mutation_count_histogram(df, "n_TERT_muts", "TERT", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_FGFR3_muts", "FGFR3", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_KDM6A_muts", "KDM6A", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_TP53_muts", "TP53", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_CREBBP_muts", "NF1", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_PIK3CA_muts", "PIK3CA", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_ARID1A_muts", "ARID1A", dim(df)[1]),
+  plot_mutation_count_histogram(df, "n_FBXW7_muts", "FBXW7", dim(df)[1]),
+  nrow = 2, ncol = 4
+)
+
+ggsave('~/Desktop/plt2.pdf', plot=arrPltBladder,  width = 15, height = 10, units = c("in"), limitsize = FALSE)
+
+
+#############################################
+######################################
+############LATEST NEW VERSION
+
+
+##############################
+#ENDOMETRIAL
+dfEndometrial <-read.table('~/Desktop/WORK/dataForLocalPlotting/endometrial_double_summary.tsv',sep = '\t', header=TRUE)
+pltEndometrialNonOnc <- plot_double_mutation_comparissons(dfEndometrial, segmentStartXParam='all_multipletRatioHypermutator',
+                                         segmentStartYParam='frac_cohort_multiplet_hypermutator',
+                                         segmentEndXParam='all_multipletRatioNonHypermutator',
+                                         segmentEndYParam='frac_cohort_multiplet_notHypermutator')
+  
+pltEndometrialOnc <- plot_double_mutation_comparissons(dfEndometrial, segmentStartXParam='oncogenic_multipletRatioHypermutator',
+                                         segmentStartYParam='frac_cohort_multiplet_oncogenic_hypermutator',
+                                         segmentEndXParam='oncogenic_multipletRatioNonHypermutator',
+                                         segmentEndYParam='frac_cohort_multiplet_oncogenic_notHypermutator', title='Multiplet Oncogenic mutations in Endometrial Cancer')
+  
+ggsave('~/Desktop/endometrialDoubleChanges.pdf', plot=pltEndometrialOnc,  width = 8, height = 8, units = c("in"), limitsize = FALSE)
+
+############################
+#COLORECTAL
+#ALERT LOADS IN THE WRONG THING FIX IT
+dfColorectal <-read.table('~/Desktop/WORK/dataForLocalPlotting/geneSpecificSimulationData_Colorectal_Cancer.tsv',sep = '\t', header=TRUE)
+pltColorectalOnc <- plot_double_mutation_comparissons(dfColorectal, segmentStartXParam='oncogenic_multipletRatioHypermutator',
+                                                       segmentStartYParam='frac_cohort_multiplet_oncogenic_hypermutator',
+                                                       segmentEndXParam='oncogenic_multipletRatioNonHypermutator',
+                                                       segmentEndYParam='frac_cohort_multiplet_oncogenic_notHypermutator',
+                                                      title='Multiplet mutations in Colorectal Cancer')
+
+ggsave('~/Desktop/colorectalDoubleChanges.pdf', plot=pltColorectalOnc,  width = 11, height = 11, units = c("in"), limitsize = FALSE)
+
+########################
+#GLIOMA
+dfGlioma <-read.table('~/Desktop/WORK/dataForLocalPlotting/glioma_double_summary.tsv',sep = '\t', header=TRUE)
+dfGlioma$textLabel
+pltGlioma <- plot_double_mutation_comparissons(dfGlioma, segmentStartXParam='all_multipletRatioHypermutator',
+                                                      segmentStartYParam='frac_cohort_multiplet_hypermutator',
+                                                      segmentEndXParam='all_multipletRatioNonHypermutator',
+                                                      segmentEndYParam='frac_cohort_multiplet_notHypermutator',
+                                                      yLabel='fraction of cases with any multiplet mutations in gene',
+                                                      xLabel='fraction of gene mutated cases that are multiplets',
+                                                      title='Double mutations (any type) in Glioma')
+
+ggsave('~/Desktop/gliomaDoubleChanges.pdf', plot=pltGlioma,  width = 15, height = 15, units = c("in"), limitsize = FALSE)
+
+
+##############################
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/pancanDoubleSummary.tsv',sep = '\t', header=TRUE)
+plt<- plot_double_mutation_by_gene(df)
+ggsave('~/Desktop/plt.pdf', plot=plt,  width = 20, height = 15, units = c("in"), limitsize = FALSE)
+
+plt <- ggplot(df, aes(x=geneClassificationPanCan, y=frac_cohort_multiplet_oncogenic_hypermutator))+
+    geom_boxplot(fatten = NULL)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
+    stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = 0.75, size = 1, linetype = "solid")+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+    geom_text(aes(label=geneAndCohortDisplay))+
+    ggtitle('Double mutation incidence as a function of Gene Mutation type')+
+    ylab('Fraction of hypermutators with double oncogenic mutation')+
+    xlab('Gene Classification')
+plt<- plt+ geom_jitter(shape=16, position=position_jitter(0.1))
+plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting: plot_double_mutation_incidence.R")
+
+
+
+
+ggplot(df[df$cancerType == 'Glioma',], aes(x=geneClassificationPanCan, y=nMultiplet_Hypermutator))+
+  geom_boxplot(fatten = NULL, alpha=0.5)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
+  stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+               width = 0.75, size = 1, linetype = "solid")+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+  geom_text(aes(label=displayGlioma))+
+ ggtitle('genes double mutated in TMZ glioma')+
+  ylab('n cases with multiplet in gene')+
+  xlab('type of gene')
+
+
+
+
+#############
+####PHASING
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/phasingInfo.tsv',sep = '\t', header=TRUE)
+plt <- ggplot(df, aes(x = cancerTypeAndGene, y= frac, fill=label))+
+  geom_bar(stat='identity', position = "dodge")+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))
+  #ylim(0,1)
+
+ggsave('~/Desktop/threeTypesPhasing.pdf', plot=plt,  width = 15, height = 15, units = c("in"), limitsize = FALSE)
+
+
+###############DOUBLE MUTATION PERMUTATION
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/mutationPermutation.tsv',sep = '\t', header=TRUE)
+
+ggplot(df, aes(x=variable, y=value))+
+  stat_summary(fun.y = mean, geom = "point", aes(ymax = ..y.., ymin = ..y..),alpha=1/2)+
+  geom_point(aes(y=realIncidence), colour='red', alpha=0.9)+
+  geom_segment(aes(xend=variable, y=upperBound, yend=lowerBound))+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  #scale_x_discrete(name ="N mutations", labels=c(1,2,3,4,5,6,7))+
+  scale_y_log10()
+
 
