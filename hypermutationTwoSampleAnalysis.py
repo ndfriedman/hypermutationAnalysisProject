@@ -17,11 +17,13 @@ import mutationSigUtils
 import maf_analysis_utils
 
 def get_samples_with_multiple_cases(df):
+    if 'pid' not in df.columns.values:
+        df['pid'] = df['Tumor_Sample_Barcode'].apply(lambda x: x[:9])
     multipleSampleIds = set()
-    for pid in set(df['pid']):
-        dfSelect = df[df['pid'] == pid]
-        if dfSelect.shape[0] > 1:
-            multipleSampleIds.add(pid)
+    df = df.drop_duplicates(subset=['Tumor_Sample_Barcode'])
+    
+    multipleSampleIds = set(df[df.groupby('pid')['pid'].transform('size') > 1]['pid'])
+    
     return multipleSampleIds
 
 #classifies mutations as occuring before, after or in both samples
@@ -37,7 +39,28 @@ def classify_muts_private_shared_only(maf):
         pidMaf['sharedMut'] = pidMaf['duplicateCol'].apply(lambda x: 'shared' if x == True else 'private')
         listOfDfs.append(pidMaf)
     return pd.concat(listOfDfs)
-        
+  
+
+mutationSigs = pd.read_table(pathPrefix + '/ifs/res/taylorlab/impact_sigs/mixedpact_data_mutations_unfiltered.sigs.tab.txt')
+mutationSigs['pid'] = mutationSigs['Tumor_Sample_Barcode'].apply(lambda x: x[:9])
+
+colorectalDf = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/subsettedMafs/Colorectal_HypermutantCaseMuts_MAF_ANNO.maf')
+endometrialDf = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/subsettedMafs/Endometrial_HypermutantCaseMuts_MAF_ANNO.maf')
+gliomaDf = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/subsettedMafs/Glioma_HypermutantCaseMuts_MAF_ANNO.maf')
+
+colorectalMultipleSampleHypermutantPids = get_samples_with_multiple_cases(colorectalDf)
+endometrialMultipleSampleHypermutantPids = get_samples_with_multiple_cases(endometrialDf)
+gliomaMultipleSampleHypermutantPids = get_samples_with_multiple_cases(gliomaDf)
+
+
+
+
+
+
+
+
+#########OLD VERSION
+      
 mutationSigs = pd.read_table(pathPrefix + '/ifs/res/taylorlab/impact_sigs/mixedpact_data_mutations_unfiltered.sigs.tab.txt')
 mutationSigs['pid'] = mutationSigs['Tumor_Sample_Barcode'].apply(lambda x: x[:9])
 cDict = analysis_utils.get_cancer_type_information(cancerTypeDfPath = pathPrefix +'/ifs/work/taylorlab/friedman/msk-impact/msk-impact/data_clinical_sample.txt')
@@ -48,8 +71,8 @@ hypermutantPids = set(mutationSigs[(mutationSigs['Nmut_Mb'] > 50) & (mutationSig
 #hypermutantPids = set(mutationSigs[mutationSigs['Nmut_Mb'] > 100]['pid'])
 multipleSampleHypermutantPids = get_samples_with_multiple_cases(mutationSigs[mutationSigs['Tumor_Sample_Barcode'].isin(hypermutantTids)])
 
-mafWithClonalityInfo = pd.read_table(pathPrefix + '/ifs/res/taylorlab/ang46/ext/dmp/mskimpact/mutation_data.txt')
-mafWithClonalityInfo = mafWithClonalityInfo[mafWithClonalityInfo['clonal'].notnull()]
+
+
 mafWithClonalityInfo['pid'] = mafWithClonalityInfo['Tumor_Sample_Barcode'].apply(lambda x: x[:9])
 mafWithClonalityInfoMultiple = mafWithClonalityInfo[mafWithClonalityInfo['pid'].isin(multipleSampleHypermutantPids)]
 mafWithClonalityInfoMultiple['variantUUID'] = mafWithClonalityInfoMultiple.apply(lambda row: str(row['Chromosome']) + '_' + str(row['Start_Position']) + '_' + str(row['Reference_Allele']) + '->' + str(row['Tumor_Seq_Allele2']), axis=1)           
