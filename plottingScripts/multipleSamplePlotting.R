@@ -26,9 +26,42 @@ plt <- ggplot(df, aes(x=factor(class, levels=c('shared', 'private', 'shared_onco
 plt <- plt +labs(caption = "data:hypermutationTwoSampleAnalysis.py; plotting: multipleSamplePlotting.R")
 
 
+#############################
+
+ggsave('~/Desktop/plot.pdf', plot=plt,  width = 2.5, height = 5, units = c("in"))
 
 
 
-ggsave('~/Desktop/plot.pdf', plot=plt,  width = 1, height = 1, units = c("in"))
 
-df$meanV
+#RANDOM CODE
+library(MASS)
+data(galaxies)
+X = galaxies / 1000
+library("mclust")
+
+library(mclust, quietly=TRUE)
+library(gridBase)
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/sigsWithCType.tsv', sep='\t', header=TRUE)
+endoCancer = df[df$cancer_type == 'Pancreatic Cancer',]
+endoCancer = endoCancer[!is.na(endoCancer$Nmut_Mb),]
+Y <- endoCancer$Nmut_Mb
+obj = densityMclust(Y, G=2)
+
+df <- data.frame(c(obj$data), c(obj$classification))
+
+binW = 0.5
+ggplot(df, aes(x=log(c.obj.data.), fill=factor(c.obj.classification.)))+
+  geom_histogram(aes(y=..count../sum(..count..)), binwidth=binW)+
+  geom_density(alpha=.2, fill="#FF6666") 
+
+
+  
+rug(Y)
+
+
+
+
+
+
+
