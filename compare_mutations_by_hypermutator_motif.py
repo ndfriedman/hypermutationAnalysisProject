@@ -18,7 +18,7 @@ import mutationSigUtils
 import maf_analysis_utils
 
 #given motifGroups which is a 
-def segement_mutations_by_motif(motifGroups):
+"""def segement_mutations_by_motif(motifGroups):
     return 0
 
 def do_glioma_TMZ_analysis(mafWithInfo, impactSigs):
@@ -153,10 +153,77 @@ def create_lambda_dict_key(row, colName):
         return None
     else:
         return row['Tumor_Sample_Barcode'] + '_' + row[colName]
-
-            
+"""
+    
+def summarize_hotspot_mutations_by_context(
+        maf, #maf of all muts
+        cType, #cancer type to focus on
+        additionalRelatedGenes = set([]) #any additional genes to consider cancer type related (ie POLE in endometrial hypermutators)
+        ):
+    listOfDicts = []
+    
+    cTypeHypermutatorIds = analysis_utils.get_ids_by_hypermutant_status(hypermutantIdDir=pathPrefix + '/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds', cancerType=cType, hypermutantStatus = 'Hypermutated')
+    cTypeHypermutantMuts = maf[maf['Tumor_Sample_Barcode'].isin(cTypeHypermutatorIds)]
+    
+    #get a dictionary for quadnuc counts in the cohort
+    quadNucCounts = dict(cTypeHypermutantMuts['quadNuc'].value_counts())
+    
+    cTypeHotspotMuts = cTypeHypermutantMuts[cTypeHypermutantMuts['is-a-hotspot'] == 'Y']
+    quadNucCountsHotspots = dict(cTypeHotspotMuts['quadNuc'].value_counts())
+    #save these for later to get percentages
+    nHotspots = cTypeHotspotMuts.shape[0]
+    nMuts = cTypeHypermutantMuts.shape[0]
+    for quadNuc, quadNucCount in quadNucCounts.items(): #SLOW CODE--do better?!?!
+        hotspotsAtQuadNuc = cTypeHotspotMuts[cTypeHotspotMuts['quadNuc'] == quadNuc]
+        for index, row in hotspotsAtQuadNuc.iterrows():
+            listOfDicts.append({
+                        'quadNuc': quadNuc,
+                        'quadNucCohortCount': quadNucCount,
+                        'quadNucHotspotCount': quadNucCountsHotspots[quadNuc], 
+                        'allele': row['Hugo_Symbol'] + '_' + row['HGVSp_Short'].strip('p.'),
+                        'Hugo_Symbol': row['Hugo_Symbol'] 
+                    })
+    df = pd.DataFrame(listOfDicts)
+    #get fractions
+    df['quadNucCohortFrac'] = df['quadNucCohortCount'].apply(lambda x: (1.0*x)/nMuts)
+    df['quadNucHotspotFrac'] = df['quadNucHotspotCount'].apply(lambda x: (1.0*x)/nHotspots)
+    
+    #mark as a mutation in related vs unrelated genes
+    cNormalIds = analysis_utils.get_ids_by_hypermutant_status(hypermutantIdDir=pathPrefix + '/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds', cancerType=cType, hypermutantStatus = 'Normal')
+    cTypeNormalMuts = maf[maf['Tumor_Sample_Barcode'].isin(cNormalIds)]
+    relatedTumorSuppressors, relatedOncogenes = maf_analysis_utils.enumerate_recurrently_mutated_tumor_supressors_and_oncogenes(cTypeNormalMuts, thresh=.05)
+    cTypeRelatedGenes = relatedTumorSuppressors | relatedOncogenes | additionalRelatedGenes
+    df['geneType'] = df['Hugo_Symbol'].apply(lambda x: '_related' if x in cTypeRelatedGenes else 'unrelated')
+    return df
         
+        
+impactMutsMaf = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/tempScriptFiles/filteredMafAnnotated_trinuc.maf')
+impactMutsMaf['quadNuc'] = impactMutsMaf.apply(lambda row: maf_analysis_utils.create_reference_four_nuc(row['Ref_Tri'], row['Reference_Allele'], row['Tumor_Seq_Allele2'], row['Variant_Type']), axis=1)
 
+dfEndometrial = summarize_hotspot_mutations_by_context(impactMutsMaf, 'Endometrial Cancer', additionalRelatedGenes = set(['POLE', 'MSH2', 'MSH6', 'PMS2', 'MLH1'])) #add in mmr/pole genes
+dfEndometrial.to_csv('~/Desktop/WORK/dataForLocalPlotting/hotspotMutsByTrinuc_endometrial.tsv', index=False, sep='\t')
+
+dfColorectal = summarize_hotspot_mutations_by_context(impactMutsMaf, 'Colorectal Cancer', additionalRelatedGenes = set(['POLE', 'MSH2', 'MSH6', 'PMS2', 'MLH1'])) #add in mmr/pole genes
+dfColorectal.to_csv('~/Desktop/WORK/dataForLocalPlotting/hotspotMutsByTrinuc_colorectal.tsv', index=False, sep='\t')
+
+dfGlioma = summarize_hotspot_mutations_by_context(impactMutsMaf, 'Glioma', additionalRelatedGenes = set(['MSH2', 'MSH6', 'PMS2', 'MLH1'])) #add in mmr/pole genes
+dfGlioma.to_csv('~/Desktop/WORK/dataForLocalPlotting/hotspotMutsByTrinuc_glioma.tsv', index=False, sep='\t')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#OLD CODE
+"""
 mafWithInfo = pd.read_table(pathPrefix + '/ifs/work/taylorlab/friedman/myAdjustedDataFiles/annotatedOncoPlusHotspotMafAllImpact_trinuc')
 mafWithInfo['pid'] = mafWithInfo['Tumor_Sample_Barcode'].apply(lambda x: x[:9])
 
@@ -210,4 +277,4 @@ endometrialPoleMutDataDf.to_csv('~/Desktop/dataForLocalPlotting/poleEndometrialC
 
 
 Counter(endometrialGenesFractionalDict).most_common(10)
-
+"""
