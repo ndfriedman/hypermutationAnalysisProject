@@ -305,7 +305,7 @@ ggsave('~/Desktop/gliomaDoubleChanges.pdf', plot=pltGlioma,  width = 15, height 
 ##############################
 df <- read.table('~/Desktop/WORK/dataForLocalPlotting/pancanDoubleSummary.tsv',sep = '\t', header=TRUE)
 plt<- plot_double_mutation_by_gene(df)
-ggsave('~/Desktop/plt.pdf', plot=plt,  width = 20, height = 15, units = c("in"), limitsize = FALSE)
+ggsave('~/Desktop/plt.pdf', plot=plt,  width = 12, height = 10, units = c("in"), limitsize = FALSE)
 
 plt <- ggplot(df, aes(x=geneClassificationPanCan, y=frac_cohort_multiplet_oncogenic_hypermutator))+
     geom_boxplot(fatten = NULL)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
@@ -319,6 +319,7 @@ plt <- ggplot(df, aes(x=geneClassificationPanCan, y=frac_cohort_multiplet_oncoge
 plt<- plt+ geom_jitter(shape=16, position=position_jitter(0.1))
 plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting: plot_double_mutation_incidence.R")
 
+ggsave('~/Desktop/plt.pdf', plot=plt,  width = 6, height = 6, units = c("in"), limitsize = FALSE)
 
 
 
@@ -358,5 +359,7 @@ ggplot(df, aes(x=variable, y=value))+
   theme(axis.text.x = element_text(angle = 60, hjust = 1))+
   #scale_x_discrete(name ="N mutations", labels=c(1,2,3,4,5,6,7))+
   scale_y_log10()
+
+
 
 
