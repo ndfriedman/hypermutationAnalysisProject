@@ -134,3 +134,32 @@ plt <- oncoPlotPrePostTMZ(tmzPrePost)
 ggsave('~/Desktop/noahDogTe.pdf', plt,  width = 30, height = 5, units = c("in"))
 
   
+
+
+####################################
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/gliomaMMRGenes.tsv', sep = '\t', header=TRUE) #load a dataframe that has already been formatted properly by a python util
+
+
+plt1 <- ggplot(df, aes(x=orderingVal, y=reorder(Tumor_Sample_Barcode, genomeDoubled)))+
+  geom_text(aes(label=Hugo_Symbol))+
+  geom_tile(aes(fill=Oncogenic), alpha=0.3)+
+  theme(axis.text.x = element_blank())+
+  theme(axis.ticks.x  = element_blank())+
+  theme(axis.text.y = element_blank())+
+  ylab('')+
+  theme(axis.ticks.y  = element_blank())
+
+plt2 <- ggplot(df, aes(x=1, y=reorder(Tumor_Sample_Barcode, genomeDoubled)))+
+  geom_tile(aes(fill=genomeDoubled))+
+  theme(legend.position="none")+
+  theme(axis.ticks.x  = element_blank())+
+  theme(axis.text.x = element_blank())
+
+alignedPlt <- plot_grid(plt2, plt1, ncol = 2, rel_widths = c(.2,1)) 
+
+ggsave('~/Desktop/noahDogTe.pdf', alignedPlt,  width = 15, height = 15, units = c("in"))
+
+
+
+
+
