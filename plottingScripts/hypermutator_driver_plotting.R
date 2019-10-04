@@ -9,6 +9,7 @@ require(ggpubr)
 require(ggridges)
 library(scales)
 library(viridis)
+library(ggrepel)
 
 if(!exists("foo", mode="function")) source("/Users/friedman/Desktop/mnt/ifs/work/taylorlab/friedman/myUtils/landscape_plot_util.R")
 
@@ -275,11 +276,37 @@ plot_density_tables_sans_signatures <- function(df, cancerType){
   return(densityPlot)
 }
 
+plot_hotspot_hypermutator_incidence <- function(df, title, coordBreak=0.0075){
+  upperPlot <- ggplot(df, aes(x=reorder(geneClass, xOrderingVal), y=incidence))+
+    geom_text_repel(aes(label=geneAlt), size=2, alpha=0.2)+
+    #geom_text(aes(label=geneAlt), size=2, alpha=0.2)+
+    coord_cartesian(ylim=c(coordBreak,0.05))+
+    theme(axis.text.x = element_blank())+
+    theme(axis.ticks.x  = element_blank())+
+    theme(axis.line.x  = element_blank())+
+    theme(axis.title.x  = element_blank())+
+    ylab('')+
+    ggtitle(title)
+  
+  lowerPlot <- ggplot(df, aes(x=reorder(geneClass, xOrderingVal), y=incidence))+
+    geom_boxplot(fatten = NULL, alpha=0.2)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
+    stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = 0.75, size = 1, linetype = "solid", alpha=1/2)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+    coord_cartesian(ylim=c(0,coordBreak))+
+    geom_jitter(shape=16, position=position_jitter(0.1), alpha=0.2)+
+    xlab('Type of mutation')+
+    ylab('Pancan Incidence of Hotspot Allele')+
+    labs(caption = "data:analyze_hypermutator_hotspot_burden.py; plotting: hypermutator_driver_plottings.R")
+  alignedPlot <- plot_grid(upperPlot, lowerPlot, nrow = 2, rel_heights = c(0.3, 1), align='v')
+  return(alignedPlot)
+}
+
 df1 <- read.table('~/Desktop/WORK/dataForLocalPlotting/signaturePlotting.tsv', sep = '\t', header=TRUE)
 #plt <- plot_full_density_tables(df1)
 plt <- plot_density_tables_sans_signatures(df1)
 
-ggsave('~/Desktop/plt.pdf', plot=plt, width = 20, height = 20, units = c("in"), limitsize = FALSE)
+ggsave('~/Desktop/plt.pdf', plot=plt, width = 7, height = 7, units = c("in"), limitsize = FALSE)
 
 ############################NEW VERSION
 
@@ -377,4 +404,24 @@ df <- read.table('~/Desktop/WORK/dataForLocalPlotting/signatureSummary.tsv', sep
 plt <- plot_signature_mut_burden_summary(df)
 ggsave('~/Desktop/plot.pdf', plot=plt,  width = 10, height = 7, units = c("in"))
 
+
+
+################
+###############
+###############
+#AREA FOR ANALYSIS OF HOTSPOT COMMONALITY
+
+dfEndo <- read.table('~/Desktop/WORK/dataForLocalPlotting/Endometrial_hotspotPrevalenceInfo.tsv',sep = '\t', header=TRUE)
+dfColorectal <- read.table('~/Desktop/WORK/dataForLocalPlotting/Colorectal_hotspotPrevalenceInfo.tsv',sep = '\t', header=TRUE)
+dfGlioma <- read.table('~/Desktop/WORK/dataForLocalPlotting/Glioma_hotspotPrevalenceInfo.tsv',sep = '\t', header=TRUE)
+
+pltEndo <- plot_hotspot_hypermutator_incidence(dfEndo, title='Endometrial Cancer')
+pltColorectal <- plot_hotspot_hypermutator_incidence(dfColorectal, title='Colorectal Cancer', coordBreak=0.03)
+pltGlioma <- plot_hotspot_hypermutator_incidence(dfGlioma, title='Glioma', coordBreak=0.02)
+
+alignedPlot <- plot_grid(
+  pltEndo, pltColorectal, pltGlioma, ncol=3
+)
+
+ggsave('~/Desktop/plot.pdf', plot=alignedPlot,  width = 15, height = 6, units = c("in"))
 
