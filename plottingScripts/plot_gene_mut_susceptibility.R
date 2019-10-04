@@ -77,7 +77,6 @@ plot_observed_mutations_by_signature_aetiology<- function(df){
   return(plt)
 }
 
-
 ###CURRENT CODE
 #PLOT expected curves
 df <- read.table('~/Desktop/WORK/dataForLocalPlotting/expectedOncogenicDataBySig.tsv', sep = '\t', header=TRUE)
@@ -91,8 +90,28 @@ ggsave('~/Desktop/plot.pdf', plot=plt,  width = 5, height = 4, units = c("in"), 
 
 
 
+####
+#CODE for overall mutation fractions
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/observedOncFraction.tsv', sep='\t', header=TRUE)
+ggplot(df[df$Nmut > 10,], aes(x = Nmut, y=fracOnc))+
+  #geom_bin2d(bins = 20, aes(fill=log(..count..)))+
+  geom_smooth(method='lm', formula = y ~ poly(x, 2), colour="orange")+
+  geom_segment(aes(x=0, xend=700, y=.07, yend=0.07), colour='green')+
+  geom_segment(aes(x=0, xend=700, y=.17, yend=0.17), colour='blue')+
+  #scale_fill_viridis(direction=-1, option='plasma')+
+  #geom_smooth(method=lm, formula = y ~ x)+
+  #geom_point(alpha=0.1, color="blue")+
+  ylim(0,1)+
+  scale_x_log10()+
+  ggtitle('Observed Fraction of Impact Muts That are Oncogenic')
 
-
+ggplot(df, aes(x = Nmut, y=RatioGenesOncMutToGenesMut))+
+  geom_smooth(method='lm', formula = y ~ poly(x, 2), colour="orange")+
+  #geom_bin2d(bins = 50, aes(fill=log(..count..)))+
+  #scale_fill_viridis(direction=-1, option='magma')+
+  scale_x_log10()+
+  ylim(0,1)+
+  ggtitle('Fraction of Genes that are Oncogenically Mutated')
 
 
 
@@ -118,19 +137,55 @@ alginedPlot <- plot_grid(
   align='v',nrow=2, ncol=1, rel_heights = c(1,.2)
 )
 ggsave('~/Desktop/plot.pdf', plot=alginedPlot,  width = 20, height = 6, units = c("in"), limitsize = FALSE)
-  
+ 
+ 
 ##########SIGNATURE BASED MUT SUSCEPTIBILITY  
+#&&&&
 
-df <- read.table('~/Desktop/WORK/dataForLocalPlotting/oncogenicSusceptibilityBySignature.tsv', sep = '\t', header=TRUE)
-plt<- ggplot(df, aes(x=reorder(Signature_Name, ExpectedFracOfMutsOncogenic), y=ExpectedFracOfMutsOncogenic))+
+emptyTheme <- theme(axis.line = element_blank(),
+                    axis.text = element_blank(),
+                    axis.ticks = element_blank(),
+                    axis.title = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.border = element_blank(),
+                    panel.background = element_blank())
+
+#df <- read.table('~/Desktop/WORK/dataForLocalPlotting/oncogenicSusceptibilityBySignature.tsv', sep = '\t', header=TRUE)
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/hypotheticalSignatureMutability.tsv', sep = '\t', header=TRUE)
+
+#FIX the color columns so R can read it in appropriately
+df$color = lapply(df$color, function(x) if (x != 'gray'){
+  paste('#', x, sep='')}
+  else{
+    'gray'
+  }
+)
+
+plt1<- ggplot(df, aes(x=reorder(Signature_Name, ExpectedFracOfMutsOncogenic), y=ExpectedFracOfMutsOncogenic, fill=color))+
+  geom_bar(stat='identity')+
+  scale_fill_identity()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))+
+  ylab('Change of a single mutation in IMPACT panel being oncogenic')+
+  xlab('Signature')+
+  ylim(0, 0.2)+
+  ggtitle('Signature oncogenicity for SNPs')+
+  emptyTheme
+  #labs(caption = 'analyze_hypothetical_and_observed_mutability_by_signature.ipynb, plot_gene_mut_susceptibility.R')
+
+plt2<- ggplot(df, aes(x=reorder(Signature_Name, oncogenicityIncludingIndels), y=oncogenicityIncludingIndels, fill=color))+
   geom_bar(stat='identity')+
   theme(axis.text.x = element_text(angle = 60, hjust = 1))+
   ylab('Change of a single mutation in IMPACT panel being oncogenic')+
   xlab('Signature')+
-  ggtitle('Signature propensity to cause oncogenic mutations in IMPACT 341')
+  ylim(0, 0.2)+
+  ggtitle('Signature oncogenicity corrected for INDEL rates')+
+  emptyTheme
+  #labs(caption = 'analyze_hypothetical_and_observed_mutability_by_signature.ipynb, plot_gene_mut_susceptibility.R')
 
-ggsave('~/Desktop/plot.pdf', plot=plt,  width = 10, height = 10, units = c("in"), limitsize = FALSE)
+plt <- plot_grid(plt1, plt2, ncol = 2)
 
+ggsave('~/Desktop/plot.pdf', plot=plt,  width = 15, height = 8, units = c("in"), limitsize = FALSE)
 
 ######################  
 #MUT susceptibility as number of distinct oncogenic mutations/size of impact region
