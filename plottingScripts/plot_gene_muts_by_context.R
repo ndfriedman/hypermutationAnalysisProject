@@ -18,6 +18,65 @@ my.rename <- function(df, old.name, new.name){ #R SUCKS!!!!!! heres my renaming 
   return(df)
 }
 
+
+plot_alteration_freqs_by_class <- function(df, title){
+  p1 <- ggplot(df, aes(x = isRelatedQuadnuc, y=isRelated))+
+    stat_summary(alpha=0.5)+
+    ylim(0,1)+
+    ylab('ccf')+
+    theme(axis.text.x = element_blank(), axis.title.x = element_blank(), axis.ticks.x = element_blank())+
+    ggtitle(title)
+  p2 <- ggplot(df, aes(x = isRelatedQuadnuc))+
+    geom_bar(stat='count')+
+    xlab('Sig-Related QuadNuc')+
+    ylab('Nmut')
+  alignedPlot <- plot_grid(p1, p2, rel_heights = c(1,.5), nrow=2)
+  return(alignedPlot)
+}
+
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/mutationMotfisComp.tsv',sep = '\t', header=TRUE)
+endoHot <- plot_alteration_freqs_by_class(df[df$is.a.hotspot == 'Y' & df$cancer_type == 'Endometrial Cancer',], 'Endometrial Hotspots')
+endoOnc <- plot_alteration_freqs_by_class(df[df$isOncogenic == 'True' & df$cancer_type == 'Endometrial Cancer',], 'Endometrial Oncogenic')
+
+coloHot <- plot_alteration_freqs_by_class(df[df$is.a.hotspot == 'Y' & df$cancer_type == 'Colorectal Cancer',], 'Colorectal Hotspots')
+coloOnc <- plot_alteration_freqs_by_class(df[df$isOncogenic == 'True' & df$cancer_type == 'Colorectal Cancer',], 'Colorectal Oncogenic')
+
+gliomaHot <- plot_alteration_freqs_by_class(df[df$is.a.hotspot == 'Y' & df$cancer_type == 'Glioma',], 'Glioma Hotspots')
+gliomaOnc <- plot_alteration_freqs_by_class(df[df$isOncogenic == 'True' & df$cancer_type == 'Glioma',], 'Glioma Oncogenic')
+
+alignedPlots <- plot_grid(endoOnc, endoHot, coloOnc, coloHot, gliomaOnc, gliomaHot, nrow=3, ncol=2)
+title <- ggplot() + ggtitle('Mutation motif vs genes affected')
+caption <- ggplot() + labs(caption = 'compare_hotspot_mutations_by_motif&plot_gene_muts_by_context.R')
+plt <- plot_grid(title, alignedPlots, caption, nrow = 3, rel_heights = c(.05,1,.05))
+ggsave('~/Desktop/plot.pdf', plt,  width = 6, height = 10, units = c("in"))
+
+###NOW do this with ccf #THATS DONE BY ADJUSTING THE FUCNTION ARGUMENTS
+
+
+#TEMP
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/mutationMotfisComp.tsv',sep = '\t', header=TRUE)
+
+p <- ggplot(df, aes(x = reorder(gene, mean), y=mean))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size=7))
+
+ggsave('~/Desktop/plot.pdf', p,  width = 10, height = 5, units = c("in"))
+
+df$Hugo_Symbol
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #ALERT CURRENTLY BEING LAZY AND ASSUMING THE Y AXIS AND FILL PARAMS are STATIC
 plotFreqMutatedGenes <- function(df, xAxisDisplayParam, xAxisOrderingParam, title, plotColors, showAxisInfo=FALSE, maxColor="red"){
   df <- my.rename(df, xAxisDisplayParam, "xAxisDisplay")
@@ -46,6 +105,30 @@ plotFreqMutatedGenes <- function(df, xAxisDisplayParam, xAxisOrderingParam, titl
   }
   return(plt)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#OLD CODE
 
 plotInfreqMutatedGenes <- function(df, xAxisDisplayParam, textDisplayParam, plotColors, title, maxColor="red"){
   #df <- my.rename(df, xAxisDisplayParam, "xAxisDisplay")
@@ -81,74 +164,6 @@ oncoPlot_By_Ordering_Implied_By_Motif <- function(df, colors, title, sepWidth=-.
 }
 
 
-test_order <- function(x){
-  if(x == 'TERT'){
-    return(10)
-  }
-  if(x == 'TP53'){
-    return(9)
-  }
-  if(x == 'IDH1'){
-    return(8)
-  }
-  if(x == 'PTEN'){
-    return(7)
-  }
-  if(x == 'ATRX'){
-    return(6)
-  }
-  else{
-    return(NA)
-  }
-}
-
-test_order_endometrial <- function(x){
-  if(x == 'POLE'){
-    return(11)
-  }
-  if(x == 'TP53'){
-    return(10)
-  }
-  if(x == 'PIK3CA'){
-    return(9)
-  }
-  if(x == 'PTEN'){
-    return(8)
-  }
-  if(x == 'ARID1A'){
-    return(7)
-  }
-  if(x == 'PIK3R1'){
-    return(6)
-  }
-  if(x == 'KRAS'){
-    return(5)
-  }
-  if(x == 'CTNNB1'){
-    return(4)
-  }
-  if(x == 'CTCF'){
-    return(3)
-  }
-  if(x == 'PPP2R1A'){
-    return(2)
-  }
-  if(x == 'FBXW7'){
-    return(1)
-  }
-  else{
-    return(NA)
-  }
-}
-
-make_bar_chart <- function(df, title, colors){
-  ggplot(df, aes(x="", fill=motif))+
-    geom_bar(width = 1, stat = "count")+
-    coord_polar("y", start=0)+
-    ggtitle(title)+
-    scale_fill_manual(values=colors)+
-    theme_minimal()
-}
 
 #TMZ
 tmzSigGliomas <- read.table('~/Desktop/dataForLocalPlotting/tmzCasesByMotif.tsv',sep = '\t', header=TRUE) #load a dataframe that has already been formatted properly by a python util
