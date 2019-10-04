@@ -8,6 +8,7 @@ library(egg)
 library(dplyr)
 library(data.table); setDTthreads(6)
 library(binom)
+library(ggrepel)
 
 
 if(!exists("foo", mode="function")) source("/Users/friedman/Desktop/mnt/ifs/work/taylorlab/friedman/myUtils/landscape_plot_util.R")
@@ -75,6 +76,8 @@ plot_double_mutation_by_gene <- function(df){
   plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting: plot_double_mutation_incidence.R")
   return(plt)
 }
+
+#OLD INCIDENCE METHOD
 
 ##########ENDOMETRIAL CANCER###############
 dfEndometrialDouble <- read.table('~/Desktop/WORK/dataForLocalPlotting/endometrial_double_mutation_incidence.tsv',sep = '\t', header=TRUE)
@@ -322,6 +325,12 @@ plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting
 ggsave('~/Desktop/plt.pdf', plot=plt,  width = 6, height = 6, units = c("in"), limitsize = FALSE)
 
 
+df[df$frac_cohort_multiplet_oncogenic_hypermutator > .15,]$gene
+
+
+
+
+
 
 ggplot(df[df$cancerType == 'Glioma',], aes(x=geneClassificationPanCan, y=nMultiplet_Hypermutator))+
   geom_boxplot(fatten = NULL, alpha=0.5)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
@@ -360,6 +369,150 @@ ggplot(df, aes(x=variable, y=value))+
   #scale_x_discrete(name ="N mutations", labels=c(1,2,3,4,5,6,7))+
   scale_y_log10()
 
+
+
+
+
+
+#########################################
+######################################
+##################################
+###############################
+##########################
+#######################
+##################
+
+
+dfEndo <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/permutationTestDoubleMutEndometrial.tsv',sep = '\t', header=TRUE)
+pltEndo <- ggplot(df, aes(x=cohort, y=p))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle=60, hjust=1))+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  geom_hline(yintercept = 0.05, colour='blue')+
+  geom_text(aes(x=6, y=-.005, label='Tumor Suppresors by percentile freq in Cancer Type'))+
+  ggtitle('Endomerial Cancer')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+dfColo <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/permutationTestDoubleMutColorectal.tsv',sep = '\t', header=TRUE)
+pltColo <- ggplot(dfColo, aes(x=cohort, y=p))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle=60, hjust=1))+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  geom_hline(yintercept = 0.05, colour='blue')+
+  geom_text(aes(x=6, y=-.005, label='Tumor Suppresors by percentile freq in Cancer Type'))+
+  ggtitle('Colorectal Cancer')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+dfGlio <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/permutationTestDoubleMutGlioma.tsv',sep = '\t', header=TRUE)
+pltGlio <- ggplot(dfColo, aes(x=cohort, y=p))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle=60, hjust=1))+
+  theme(axis.line = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank())+
+  geom_hline(yintercept = 0.05, colour='blue')+
+  geom_text(aes(x=7, y=-.005, label='Tumor Suppresors by percentile freq in Cancer Type'))+
+  ggtitle('Gliomas')+
+  theme(plot.title = element_text(hjust = 0.5))
+
+alignedPlot <- plot_grid(ggplot()+ggtitle('Permutation Test For Double Mutation Enrichment'),
+                          pltEndo, pltColo,
+                         ggplot()+labs(caption='gene_multiple_hit_analysis.ipynb  plot_double_mutation_incidence.R'),
+                                      nrow =4, rel_heights=c(.1,1,1,.1))
+
+ggsave('~/Desktop/plt.pdf', plot=alignedPlot,  width = 7, height = 10, units = c("in"), limitsize = FALSE)
+
+plot_grid(nrow = 5, ncol=1)
+
+
+#
+####
+########
+#################
+#####################
+########################
+#####################################
+#####################################
+################################
+########################
+#################
+#########
+#
+
+
+df <- read.table('~/Desktop/WORK/dataForLocalPlotting/pancanDoubleSummary.tsv',sep = '\t', header=TRUE)
+plt<- plot_double_mutation_by_gene(df)
+ggsave('~/Desktop/plt.pdf', plot=plt,  width = 12, height = 10, units = c("in"), limitsize = FALSE)
+
+plt <- ggplot(df[df$geneClassificationPanCan == 'NonRecurrentOncogene',], aes(x=geneClassificationPanCan, y=frac_cohort_multiplet_oncogenic_hypermutator))+
+  geom_boxplot(fatten = NULL)+ #TODO FIX THIS TO PLOT THE MIDDLE LINE AS THE MEAN!!!
+  stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+               width = 0.75, size = 1, linetype = "solid")+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+  geom_text(aes(label=geneAndCohort))+
+  ggtitle('Double mutation incidence as a function of Gene Mutation type')+
+  ylab('Fraction of hypermutators with double oncogenic mutation')+
+  xlab('Gene Classification')
+plt<- plt+ geom_jitter(shape=16, position=position_jitter(0.1))
+plt <- plt + labs(caption = "data:compare_double_mutation_incidence.py; plotting: plot_double_mutation_incidence.R")
+
+ggsave('~/Desktop/plt.pdf', plot=plt,  width = 6, height = 6, units = c("in"), limitsize = FALSE)
+
+
+
+#
+###
+#########
+############
+##############
+###################
+#########################
+################################
+########################################
+###################################
+##############################
+########################
+#####################
+#################
+#############
+#########
+######
+###
+#
+
+#this is for glioma balance stuff
+
+emptyTheme <- theme(axis.line = element_blank(),
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.border = element_blank(),
+                    panel.background = element_blank())
+
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/gliomaMutBalance.tsv',sep = '\t', header=TRUE)
+
+p <- ggplot(df)+
+  stat_summary(aes(x='Unbalanced', y=unbalancedOncDoubleRate), geom='bar')+
+  stat_summary(aes(x='Unbalanced', y=unbalancedOncDoubleRate), geom='errorbar', width=0, colour='black')+
+  stat_summary(aes(x='Balanced', y=balancedOncDoubleRate), geom='bar')+
+  stat_summary(aes(x='Balanced', y=balancedOncDoubleRate), geom='errorbar',  width=0, colour='black')+
+  emptyTheme+
+  ylab('N Double Oncogneic Mut/Base Pair in Region')+
+  xlab('Region of genome')+
+  ggtitle('Double-Onc TS Glioma')
+
+finalP <- plot_grid(p, ggplot() + labs(caption='plot_double_mutation_incidence.R, glioma_tumor_suppressor_target'), nrow=2, rel_heights = c(1, .03))
+ggsave('~/Desktop/plt.pdf', plot=finalP,  width = 2.75, height = 4, units = c("in"), limitsize = FALSE)
 
 
 
