@@ -63,13 +63,13 @@ gene_list410 <- setdiff(gene_list410, c("MAP3K14", "MYCL1", "RYBP", "KMT5A", "PA
 gene_list468 <- setdiff(gene_list468, c("MAP3K14", "MYCL1", "RYBP", "KMT5A", "PAK5", "FAM123B"))
 
 #RUN DNDS on everybody
-dndsEndometrialHyper <- dndscv(endometrialHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
-dndsColorectalHyper <- dndscv(colorectalHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
-dndsGliomaHyper <- dndscv(gliomaHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
+dndsEndometrialHyper <- dndscv(endometrialHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
+dndsColorectalHyper <- dndscv(colorectalHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
+dndsGliomaHyper <- dndscv(gliomaHyperMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
 
-dndsEndometrialNormal <- dndscv(endometrialNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
-dndsColorectalNormal <- dndscv(colorectalNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
-dndsGliomaNormal <- dndscv(gliomaNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf)
+dndsEndometrialNormal <- dndscv(endometrialNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
+dndsColorectalNormal <- dndscv(colorectalNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
+dndsGliomaNormal <- dndscv(gliomaNormalMaf, gene_list = gene_list468, max_muts_per_gene_per_sample = Inf, max_coding_muts_per_sample = Inf, use_indel_sites=F)
 
 sel_cvEdnoH <- dndsEndometrialHyper$sel_cv
 sel_cvEdnoN <- dndsEndometrialNormal$sel_cv
