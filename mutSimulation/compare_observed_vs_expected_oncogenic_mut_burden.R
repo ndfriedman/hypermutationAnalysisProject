@@ -7,13 +7,140 @@ library(grid)
 require(cowplot)
 library(egg)
 library(viridis)
+library(ggrepel)
 
 if(!exists("foo", mode="function")) source("/Users/friedman/Desktop/mnt/ifs/work/taylorlab/friedman/myUtils/landscape_plot_util.R")
 
 #IDEA points, one in each color
 
+plot_simple_model_observed_vs_expected <- function(df, title){
+  p <- ggplot(df)+
+  geom_smooth(aes(x = Nmut_x, y=Observed.Oncogenic), method=lm, formula = y ~ splines::bs(x, 3), colour="blue")+
+  geom_point(aes(x = Nmut_x, y=Observed.Oncogenic), alpha = 0.1, colour="blue")+
+  geom_segment(aes(x=0, y=0, xend=max(df$Nmut_x), yend=.26*max(df$Nmut_x)), colour='red')+
+  #scale_x_log10()+
+  #scale_y_log10()+
+  ggtitle('Observed vs Expected (simple expected model)')
+  return(p)
+}
+
+plot_observed_expected_curves <- function(df, title){
+  plt <- ggplot(df)+
+    geom_smooth(aes(x = Nmut, y=Expected.Oncogenic), method='lm', formula = y ~ x, colour="red")+
+    geom_smooth(aes(x = Nmut, y=Observed.Oncogenic), method='lm', formula = y ~ x, colour="blue")+
+    geom_point(aes(x = Nmut, y=Expected.Oncogenic), alpha = 0.1, colour="red")+
+    geom_point(aes(x = Nmut, y=Observed.Oncogenic), alpha = 0.1, colour="blue")+
+    scale_x_log10()+
+    scale_y_log10()+
+    ggtitle(title)
+  return(plt)
+}
+
+#plots one minus the other
+plot_simple <- function(df){
+  plt <- ggplot(df)+
+  geom_smooth(aes(x = Nmut, y=ObservedMinusExpected), method=lm, formula = y ~ splines::bs(x, 3), colour="red")+
+  #geom_smooth(aes(x = Nmut, y=ObservedUniqueMinusExpected), method='loess', formula = y ~ x, colour="orange")+
+  geom_smooth(aes(x = Nmut, y=ObservedUniqueMinusExpected), method=lm, formula = y ~ splines::bs(x, 3), colour="orange")+
+  geom_point(aes(x = Nmut, y=ObservedUniqueMinusExpected), alpha = 0.1, colour="orange")
+  #xlim(0,250)
+  #scale_x_log10()
+  #scale_y_log10()
+  return(plt)
+}
+
+#TEMP MOVE SOMEWHERE NEW!!!
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/temp.tsv', sep = '\t', header=TRUE)
+
+b <- c(1,5,10,20,30,40,50,75,100,150,1000)
+ggplot(df, aes(x=Nmut_y))+
+  #Draw the bars from highest to lowest --the minuses always lag one behind what is actually there
+  #HIGHEST BAR--nmut strongly related
+  stat_summary_bin(aes(y=nMutOncogenic), geom = 'bar', stat='mean', fill='purple', breaks = b)+
+  #SECOND HIGHEST--nmut strongly related multiple
+  stat_summary_bin(aes(y=nMutOncogenic - nStronglyRelatedSingleAlterations), geom = 'bar', stat='mean', fill='#31004a', breaks = b)+
+  #Third highest--nmut slight related
+  stat_summary_bin(aes(y=nMutOncogenic - nStronglyRelatedSingleAlterations - nStronglyRelatedMultipleMutations), geom = 'bar',  fill='#9acd32', breaks = b)+
+  #fourth higest--nmut sligtly related multiple
+  stat_summary_bin(aes(y=nMutOncogenic - nStronglyRelatedSingleAlterations - nStronglyRelatedMultipleMutations - nWeaklyRelatedSingleAlterations), geom = 'bar', fill='#306844', breaks = b)+
+  #final bottom bar
+  stat_summary_bin(aes(y=nMutOncogenic - nStronglyRelatedSingleAlterations - nStronglyRelatedMultipleMutations - nWeaklyRelatedSingleAlterations - nWeaklyRelatedMultipleMutations), geom = 'bar', fill='orange', breaks = b)+
+  scale_x_log10(breaks=b)+
+  stat_summary_bin(aes(y=Expected.Oncogenic), stat='mean', colour='white', breaks = b)+
+  xlab('Nmut total in case')+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size=12))+
+  ggtitle('Genes Altered by type')
+  
+ggplot(head(df,6))+
+  geom_bar(aes(fill=Tumor_Sample_Barcode, x=1))+
+  scale_fill_manual(values = c('purple', '#31004a', '#9acd32', '#306844', 'orange', 'white'))
+
+
+df$nMutWeaklyRelated
+  
+
+df <- read.table('~/Desktop/mnt/ifs/work/taylorlab/friedman/myAdjustedDataFiles/observedVsExpectedData.tsv', sep = '\t', header=TRUE)
+
+p <-plot_simple_model_observed_vs_expected(df, 'title')
+
+p <- plot_observed_expected_curves(df, 'Observed vs Expected (SNP+INDEL model)')
+p1 <- plot_observed_expected_curves(df[df$caseMsiClass == 'Stable',], 'MSI stable')
+p2 <- plot_observed_expected_curves(df[df$caseMsiClass == 'Instable',], 'MSI Instable')
+
+
+
+################PLOTING FOR GENES
+######
+######
+#####
+#####
+
+plot_gene_observed_expected_line_plot <- function(df, cancerType){
+  df = df[df$cancer_type == cancerType,]
+  df$geneMutType <- factor(df$geneMutType, levels = c('strongly_recurrent', 'weakly_recurrent', 'not_recurrent'))
+  ggplot(df, aes(x = geneMutType, y=geneObsExpectedRatio))+
+    geom_boxplot(fatten = NULL)+
+    stat_summary(fun.y = median, geom = "errorbar", aes(ymax = ..y.., ymin = ..y..),
+                 width = 0.75, size = 1, linetype = "solid")+
+    geom_text_repel(aes(label=geneDisplayName))+
+    ylim(-0.25,1)+
+    ylab('Enrichment of Observed over Expected per case')+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size=10))+
+    ggtitle(cancerType)+
+    labs(caption = 'oncogenic_mut_prob_simulation_by_gene.ipynb, compare_observed_vs_expected.R')
+}
+
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/observedVsExpectedByGeneHypermutators.tsv', sep = '\t', header=TRUE)
+Endo <- plot_gene_observed_expected_line_plot(df, 'Endometrial Cancer')
+Colo <- plot_gene_observed_expected_line_plot(df, 'Colorectal Cancer')
+Glio <- plot_gene_observed_expected_line_plot(df, 'Glioma')
+combinedPlot <- plot_grid(Endo, Colo, Glio, ncol = 3)
+
+ggsave('~/Desktop/plt.pdf', plot=combinedPlot,  width = 14, height = 7, units = c("in"))
+
+#TODO TOMORROW MAKE THIS PRETTIER AND SAVE IT
+
+
+df$geneDisplayName
+max(df$nExpectedMuts)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 plot_observed_and_exprected_oncogenic_mut_burden <- function(df, title){
-  plt <- ggplot(df, aes(x=reorder(Tumor_Sample_Barcode, Nmut), y=value, color=variable))+
+  plt <- ggplot(df[df], aes(x=reorder(Tumor_Sample_Barcode, Nmut), y=value, color=variable))+
   geom_point()+
   
   geom_smooth(aes(x=reorder(Tumor_Sample_Barcode, Nmut), y=ratio, group=1), method="lm")+
@@ -173,4 +300,27 @@ x <- plot_grid(
 
 ggsave('~/Desktop/plt.pdf', x,  width = 10, height = 10, units = c("in"))
 
+
+#
+#####
+########
+###############
+########################
+################################
+#######################
+################
+##########
+##
+
+df <- read.table('/Users/friedman/Desktop/WORK/dataForLocalPlotting/observedVsExpectedByGeneHypermutators.tsv', sep = '\t', header=TRUE)
+
+ggplot(df[df$cancer_type == 'Endometrial Cancer',], aes(x = nExpectedMuts, y = nObservedMuts))+
+         geom_point()+
+         geom_text(aes(label=geneDisplayName))+
+         geom_abline(intercept = 0)
+
+
+
+
+df
 
