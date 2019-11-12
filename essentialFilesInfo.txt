@@ -1,0 +1,4 @@
+MAF with oncogkb and hotspot annotations: 
+/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/all_impact_mutations_annotated_cohort.maf
+275,171 lines
+
