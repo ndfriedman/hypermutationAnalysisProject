@@ -24,8 +24,14 @@ summary:
 PENTA nucleotide summaries:
 /ifs/work/taylorlab/friedman/myAdjustedDataFiles/pentaNucMutationSummary.tsv
 
+ALL MUTS SUMMARY:
+use python summarize_possible_mutations.py to generate:
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/allPossibleIMPACTMutationsSummary.tsv
+
+
+
 EXPECTED RATES
-uses /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/expectedMutationTables/quadNucAndGenePossibleMutationSummaryIMPACT341.tsv as an input for all numbers of mutations
+uses /juno/work/taylorlab/friedman/myAdjustedDataFiles/allPossibleIMPACTMutationsSummary.tsv as an input for all numbers of mutations, uses the function: mutation_modeling_util.convert_counts_information_to_fraction(countsDf) to get intermediate data frame of chances for mutations
 expected truncating, hotspot and oncogenic rates by gene for all hypermutated cases /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/expectedMutationTables/allHypermutatorsExpectedGeneMutInfo.tsv
 expected rates for tcga hypermutated cases: /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/expectedMutationTables/tcgaHypermutatorsExpectedGeneMutInfo.tsv
 
