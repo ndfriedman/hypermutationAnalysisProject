@@ -11,6 +11,7 @@ MAFs with facets annotations from MAF anno:
 SIGNATURES
 Signature 30 spectrums: /ifs/work/taylorlab/friedman/noahFirstProject/signature_sig_copy/mutation-signatures/Stratton_signatures30.txt
 Signatures from Alex Penson: /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/signatures_from_unfiltered_maf.txt
+TCGA signatures: /home/friedman/junoData/myAdjustedDataFiles/tcgaSigsCombined.txt
 
 
 HYPERMUTATION CLASSIFICATIONS:
