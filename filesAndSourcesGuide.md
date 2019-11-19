@@ -1,8 +1,8 @@
 
-<h1> Figure 1
+# Figure 1 #
 <br>
 <br>
-<h3> Essential figures for figure 1 <h3>
+### Essential figures for figure 1 ###
 
 **MAF with oncogkb and hotspot annotations**: 
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_nov19_2019.maf
