@@ -17,7 +17,7 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 /juno/work/taylorlab/friedman/myAdjustedDataFiles//mutations_TMB_and_MSI_stats.txt
 37990 cases
 
-<h4>STEP 1: figure 1a
+<h4>STEP 1: figure 1a<h4>
 Define the hypermutation thresholds with: hypermutationAnalysisProject/plottingScripts/plotAndDefineHypermutationThresholds.R
 
 
