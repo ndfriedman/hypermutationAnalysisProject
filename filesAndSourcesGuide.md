@@ -2,21 +2,20 @@
 # Figure 1 #
 <br>
 <br>
-### Essential figures for figure 1 ###
+### Essential files for figure 1 ###
 
+all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th 2019
 **MAF with oncogkb and hotspot annotations**: 
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_nov19_2019.maf
+37990 cases; 331821 lines; 
 
-**File with cancer types**
+**Text file with cancer type information**
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/cancerTypeInfo_asOfNov192019.txt
+37989 cases, access with analysis_utils.get_cancer_type_information()
 
-
-
-
-
-
-
-
-
+**Text file with TMB and MSI stats**
+/juno/work/taylorlab/friedman/myAdjustedDataFiles//mutations_TMB_and_MSI_stats.txt
+37990 cases
 
 
 
