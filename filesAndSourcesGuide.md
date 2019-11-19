@@ -2,7 +2,7 @@
 # Figure 1 #
 <br>
 <br>
-### Essential files for figure 1 ###
+## Essential files for figure 1 
 
 all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th 2019
 **MAF with oncogkb and hotspot annotations**: 
