@@ -1,4 +1,21 @@
-MAF with oncogkb and hotspot annotations: 
+**MAF with oncogkb and hotspot annotations**: 
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_nov19_2019.maf
+
+**File with cancer types**
+
+
+
+
+
+
+
+
+
+
+
+
+#OLD
+
 /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/all_impact_mutations_annotated_cohort.maf
 275,171 lines
 
