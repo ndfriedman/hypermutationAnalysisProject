@@ -1,7 +1,7 @@
 
 <h1> Figure 1
- \n
- \n
+<br>
+<br>
 <h3> Essential figures for figure 1
 
 **MAF with oncogkb and hotspot annotations**: 
