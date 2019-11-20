@@ -14,11 +14,16 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 37989 cases, access with analysis_utils.get_cancer_type_information()
 
 **Text file with TMB and MSI stats**
-/juno/work/taylorlab/friedman/myAdjustedDataFiles//mutations_TMB_and_MSI_stats.txt
+/juno/work/taylorlab/friedman/myAdjustedData/mutations_TMB_and_MSI_stats.txt
 37990 cases
+
+**Text file with IMPACT signature decompositions from Alex Penson**
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019.tsv
+--note the tmb and nmut values alex generated were overwritten and replaced with stuff from chai
 
 #### STEP 1: figure 1a
 Define the hypermutation thresholds with: hypermutationAnalysisProject/plottingScripts/plotAndDefineHypermutationThresholds.R
+
 
 
 <br>
