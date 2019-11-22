@@ -23,7 +23,9 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 
 #### STEP 1: figure 1a
 Define the hypermutation thresholds with: hypermutationAnalysisProject/plottingScripts/plotAndDefineHypermutationThresholds.R
-
+Adjust them with /Users/friedman/Desktop/WORK/hypermutationProjectJupyterScripts/scriptsToGenerateFigures/generate_mut_classification_figure#1a#.ipynb
+FINAL OUTPUTS ARE SAVED IN: 
+/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds
 
 
 <br>
