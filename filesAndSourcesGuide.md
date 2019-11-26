@@ -20,12 +20,16 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 **Text file with IMPACT signature decompositions from Alex Penson**
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019.tsv
 --note the tmb and nmut values alex generated were overwritten and replaced with stuff from chai
+--I added information about dominant signatures here too
 
 #### STEP 1: figure 1a
 Define the hypermutation thresholds with: hypermutationAnalysisProject/plottingScripts/plotAndDefineHypermutationThresholds.R
 Adjust them with /Users/friedman/Desktop/WORK/hypermutationProjectJupyterScripts/scriptsToGenerateFigures/generate_mut_classification_figure#1a#.ipynb
 FINAL OUTPUTS ARE SAVED IN: 
 /juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds
+
+#### STEP 2: figure 1b/c
+Summarize cancer types and signatures with 
 
 
 <br>
