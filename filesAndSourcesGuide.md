@@ -22,15 +22,30 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 --note the tmb and nmut values alex generated were overwritten and replaced with stuff from chai
 --I added information about dominant signatures here too
 
-#### STEP 1: figure 1a
+All main figure plots are made with 'plotFigure1.R' and all supplementary plots are made with 'plotSupplementaryFiguresFig1.R'
+
+#### figure 1a
 Define the hypermutation thresholds with: hypermutationAnalysisProject/plottingScripts/plotAndDefineHypermutationThresholds.R
 Adjust them with /Users/friedman/Desktop/WORK/hypermutationProjectJupyterScripts/scriptsToGenerateFigures/generate_mut_classification_figure#1a#.ipynb
 FINAL OUTPUTS ARE SAVED IN: 
 /juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds
 
-#### STEP 2: figure 1b/c
-Summarize cancer types and signatures with 
+#### figure 1b
+Summarize cancer types and signatures with #generate_cancer_types_and_sigs_figure#figure1b_c
 
+#### figure 1c
+Summarize cancer types and signatures with #generate_cancer_types_and_sigs_figure#figure1b_c
+
+#### figure 1d
+Summarize n hotposts/oncogenic info with generate_n_oncogenic_by_hyper_not_hyper_#figure1d#
+
+#### figure 1e
+Get n expected rates for all cases with:
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+# Figure 2
 
 <br>
 <br>
