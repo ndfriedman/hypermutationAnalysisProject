@@ -48,10 +48,9 @@ Get n expected rates for all cases with:
 Get all possible mutation summaries with /juno/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/summarize_possible_mutations.py, which writes a file to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/allPossibleIMPACTMutationsSummary.tsv
 
 use unadjustedSignatures from: '/juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019_not_merged.tsv'
-
-/juno/work/taylorlab/friedman/hypermutationAnalysisProj/
-
-
+and run this script (it takes a long time):
+python /juno/work/taylorlab/friedman/hypermutationAnalysisProjmutSimulation/summarize_expected_data.py
+data is written here: /juno/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/expectedMutationTables/allHypermutatorsExpectedGeneMutInfo.tsv
 
 -----------------------------------------------------------------------------------------------------------------
 
