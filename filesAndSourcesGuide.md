@@ -45,6 +45,12 @@ Summarize n hotposts/oncogenic info with generate_n_oncogenic_by_hyper_not_hyper
 
 #### figure 1e
 Get n expected rates for all cases with:
+Get all possible mutation summaries with /juno/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/summarize_possible_mutations.py, which writes a file to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/allPossibleIMPACTMutationsSummary.tsv
+
+use unadjustedSignatures from: '/juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019_not_merged.tsv'
+
+/juno/work/taylorlab/friedman/hypermutationAnalysisProj/
+
 
 
 -----------------------------------------------------------------------------------------------------------------
