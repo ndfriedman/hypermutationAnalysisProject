@@ -56,6 +56,20 @@ data is written here: /juno/work/taylorlab/friedman/hypermutationAnalysisProj/mu
 
 # Figure 2
 
+#### figure 2a
+compare n mutations in cancer type related and unrelated genes (note we need to define what is and what is not related)
+
+#### figure 2b
+?gene by gene hypermutated vs normal
+
+#### figure 2c
+unfilteredMaf is here: /juno/work/taylorlab/friedman/myAdjustedDataFiles/dataMutationsUnfilteredNov19.txt
+Run DNDS using:
+runDnDsCv.R
+
+#### figure 2d
+
+#### figure 2e
 <br>
 <br>
 <br>
