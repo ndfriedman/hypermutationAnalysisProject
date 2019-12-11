@@ -64,6 +64,7 @@ compare n mutations in cancer type related and unrelated genes (note we need to 
 
 #### figure 2c
 unfilteredMaf is here: /juno/work/taylorlab/friedman/myAdjustedDataFiles/dataMutationsUnfilteredNov19.txt
+use make_dnds_figure_2c to write dnds files to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/mafsForDndsCV/
 Run DNDS using:
 runDnDsCv.R
 
