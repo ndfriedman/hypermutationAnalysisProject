@@ -7,91 +7,190 @@ require(cowplot)
 library(egg)
 library(dplyr)
 library(data.table); setDTthreads(6)
+library(stringr)
 
 library("mclust")
 library(mclust, quietly=TRUE)
 library(gridBase)
-if(!exists("foo", mode="function")) source("/Users/friedman/Desktop/mnt/ifs/work/taylorlab/friedman/myUtils/landscape_plot_util.R")
+library(Ckmeans.1d.dp)
 
-plot_distribution <- function(df, binW = 0.5, title=''){
-  plt<- ggplot(df, aes(x=log(Nmut_Mb), fill=factor(hypermutantClassification)))+
-    geom_histogram(aes(y=..count../sum(..count..)), binwidth=binW)+
-    geom_density(alpha=.2, fill="#FF6666")+
-    scale_x_continuous(breaks=c(1,2,2.5,3,3.5,4,4.5,8))+
+plot_distribution <- function(df, binW = 1, title='', hideLegend=TRUE){
+  
+  emptyTheme <- theme(axis.line = element_blank(),
+                      panel.grid.major = element_blank(),
+                      panel.grid.minor = element_blank(),
+                      panel.border = element_blank(),
+                      panel.background = element_blank())
+  
+  
+  plt<- ggplot(df, aes(x=Nmut_Mb))+
+    
+    geom_histogram(binwidth = binW, aes(fill=factor(hypermutantClassification, levels=c('highMutationBurden', 'Hypermutated', 'Indeterminate', 'Normal'))))+
+    #geom_density(aes(y=binW * ..count..), alpha=0.5)+
+    
     theme(axis.text.x=element_text(size=3, face="bold"))+
-    ggtitle(title)
+    scale_fill_manual(values = c('orange', 'maroon', '#2a2a2a', 'gray'), drop=FALSE)+
+    coord_cartesian(ylim=c(0,100), xlim=c(0,500))+
+    ggtitle(title)+
+    scale_y_continuous(breaks=c(0,25,50,100), labels=c('0', '25', '50', '>100'))+
+    theme(axis.text.x = element_text(size=20),
+          axis.title.x = element_text(size=20),
+          axis.text.y = element_text(size=20),
+          axis.title.y = element_text(size=20),
+          plot.title = element_text(size=30)
+          )+
+    ylab('N cases')+
+    xlab('Mutations/Megabase')+
+    emptyTheme+
+    guides(fill=guide_legend(title="Hypermutant Classification"))
+  if(hideLegend){
+    plt <- plt + theme(legend.position = 'none') 
+  }
   return(plt)
 }
 
-fit_and_analyze_dist <- function(dataFrame){
-  dataFrame = dataFrame[!is.na(dataFrame$Nmut_Mb),]
-  Y <- dataFrame$Nmut_Mb
-  obj = densityMclust(Y, G=2)
+#New method written by Noah Friedman on 11/19
+fit_and_analyze_dist <- function(dataFrame,
+                                 quantileBufferSize=.1, #the quantile determines how many cases we throw out from the hypermutant cluster
+                                 minimumHypermutantThresh = 20, #this is the number below which we well never consider a case hypermutated
+                                 maxNClusters = 10
+){
   
-  df <- data.frame(c(obj$data), c(obj$classification), dataFrame$Tumor_Sample_Barcode)
+  dataFrame = dataFrame[!is.na(dataFrame$tmb),]
   
-  colN <- c("Nmut_Mb","Classification", 'Tumor_Sample_Barcode')
-  colnames(df) <- colN
+  clus <- Ckmeans.1d.dp(dataFrame$tmb, k=c(1,maxNClusters)) #WE cluster using ckmeans 1d on log(mutations per megabase).
   
-  dimClass1 <- dim(df[df$Classification == 1,])[1]
-  dimClass2 <- dim(df[df$Classification == 2,])[1]
-  smallerClassSize <- min(dimClass1, dimClass2)/(dimClass1 + dimClass2)
-  smallerClassData <- df[df$Classification == 2,]$Nmut_Mb #THIS IS THE HYPERMUTATORS THE GROUP WITH A SMALL CLASS SIZE
-  largerClassData <- df[df$Classification == 1,]$Nmut_Mb #THIS IS THE NON HYPERMUTATORS THE GROUP WITH A LARGE CLASS SIZE
-   
-  #IF THE SMALLER CLASS IS TOO BIG THAT IS AN ISSUE AND WE NEED TO SIGNAL AN ERROR
-  
-  indeterminateUpperBound <- max(quantile(smallerClassData, c(.2)), 20)
-  indeterminateLowerBound <- min(20, quantile(smallerClassData, c(0)))
-  
-  df <- mutate(df,
-         hypermutantClassification = ifelse(Nmut_Mb>=indeterminateUpperBound, "Hypermutated",
-                                    ifelse(Nmut_Mb>=indeterminateLowerBound, "Indeterminate",
-                                    ifelse(Nmut_Mb<indeterminateLowerBound, "Normal", "No_Nmut_Mb_Info")))
-                                            )
-  df$HypermutantThresh = indeterminateUpperBound
-  df$NormalThresh = indeterminateLowerBound
-  
-  return(list(df, smallerClassData, largerClassData))
+  #create a dataframe with the clustering results
+  df <- data.frame(c(clus$cluster), dataFrame$Tumor_Sample_Barcode, dataFrame$tmb)
+  colnames(df) <- c("cluster", "Tumor_Sample_Barcode", "Nmut_Mb")
+
+  nClusters <- length(unique(clus$cluster))
+  minimumHypermutatedCluster = nClusters + 1
+  for(i in seq(1, nClusters)){
+    if(clus$centers[[i]] > minimumHypermutantThresh){
+      minimumHypermutatedCluster = i
+      break
+    }
+  }
+  #IF SOMEHOW WE DIDNT FIND ANY CLUSTERS MARK THAT DOWN
+  if(nClusters == 1){
+    df$HypermutantThresh = 'Only one cluster found'
+    df$NormalThresh = 'Only one cluster found'
+    df$hypermutantClassification = 'Normal-No Clusters Found'
+    return(df)
+  }
+  else{
+    hypermutantCluster = df[df$cluster >= minimumHypermutatedCluster,] #the numerically largest cluster always has the biggest mean
+    notHypermutantCluster = df[df$cluster < minimumHypermutatedCluster,]
+    
+    #Create the bounds for the indeterimante clusters using this information and the parameters passed in
+    indeterminateUpperBound <- max(quantile(hypermutantCluster$Nmut_Mb, c(quantileBufferSize)), minimumHypermutantThresh)
+    indeterminateLowerBound <- min(minimumHypermutantThresh, quantile(notHypermutantCluster$Nmut_Mb, c(1)))
+
+    #make a dataframe with this info
+    df <- mutate(df,
+                 hypermutantClassification = ifelse(Nmut_Mb>=indeterminateUpperBound, "Hypermutated",
+                                                    ifelse(Nmut_Mb>=indeterminateLowerBound, "Indeterminate",
+                                                           ifelse(Nmut_Mb<indeterminateLowerBound, "Normal", "No_Nmut_Mb_Info"))))
+    #FIX classifications that end up as NA
+    df$hypermutantClassification <- sapply(df$hypermutantClassification, function(x) if(is.na(x)) 'Normal' else x)
+    
+    df$HypermutantThresh = indeterminateUpperBound
+    df$NormalThresh = indeterminateLowerBound
+    return(df)
+  }
 }
 
-
-#sigsData <- read.table('~/Desktop/WORK/dataForLocalPlotting/sigsWithCType.tsv', sep='\t', header=TRUE)
-sigsData <- read.table('~/Desktop/mnt/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/tmbInfo.tsv', sep='\t', header=TRUE)
-
-l <- list()
-i <- 1
-cancerTypes <- unique(sigsData$cancer_type)
-minNSamples <- 250
-for (cancerType in cancerTypes){
-  analyzeD = sigsData[sigsData$cancer_type == cancerType,]
-  if(dim(analyzeD)[[1]] >= minNSamples){
-    info <- fit_and_analyze_dist(analyzeD)
-    plotData <- info[[1]]
-    dataLarge<- info[[2]]
-    dataSmall <- info[[3]]
-    p <- plot_distribution(plotData, title=cancerType)
-    l[[i]] <- p
-    i <- i + 1
-    
-    if(nchar(cancerType) > 1){
-      path <- '~/Desktop/mnt/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/'
-      cancerTypeAdj <- gsub(" ", "_", cancerType)
-      fullPath <- paste(path, cancerTypeAdj, '.tsv', sep='')
-      write.table(plotData, file=fullPath, sep='\t')
+#a big omnibus function that does the following:
+#finds hypermutants based on clustering
+#simulataneously if you specify the save option with your own save path it will save them
+#relies on you to have previousy adjust the $cancerType column beforehand
+find_and_save_all_distributions <- function(tmbData, minNSamples=250,
+  quantileBuffer=.1, #the quantile determines how many cases we throw out from the hypermutant cluster
+  minHypermutantThresh = 20, #this is the number below which we well never consider a case hypermutated
+  maxClusters = 10, #NOTE that the choice of between 1 and 3 clusters is arbitrary its just what work
+  writeData=TRUE, writePath ='~/Desktop/mnt/ifs/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/'){
+  
+  cancerTypes <- unique(tmbData$cancerType)
+  for (cancerType in cancerTypes){
+    print(cancerType)
+    analyzeD = tmbData[tmbData$cancerType == cancerType,]
+    if(dim(analyzeD)[[1]] >= minNSamples){
+      data <- fit_and_analyze_dist(analyzeD, quantileBufferSize=quantileBuffer,
+                                       minimumHypermutantThresh = minHypermutantThresh,
+                                       maxNClusters = maxClusters)
+      
+      if(writeData == TRUE){
+        if(nchar(cancerType) > 1){
+          print(paste('writingData for ', cancerType))
+          cancerTypeAdj <- gsub(" ", "_", cancerType)
+          fullPath <- paste(writePath, cancerTypeAdj, '.tsv', sep='')
+          write.table(data, file=fullPath, sep='\t')
+        }
       }
     }
+  }
 }
 
-length(l)
+#load the distributions (they may have been changed by my python script/any other steps the user deems necessary)
+load_and_plot_all_distributions <-  function(fileDir = '~/Desktop/mnt/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/'){
+  l <- list()
+  i <- 1
+  for(file in list.files(fileDir)){
+    df <- read.table(paste(fileDir, file, sep = ""), sep='\t', header=TRUE)
+    
+    cancerType = str_replace(file, ".tsv", "")
+    p <- plot_distribution(df, title=cancerType)
+    l[[i]] <- p
+    i <- i + 1
+  }
+  #dummy plot to get a legend
+  legend <- get_legend(plot_distribution(df, title=cancerType, hideLegend=FALSE))
+  print(legend)
+  l[[i]] <- legend
+  return(l)
+}
 
-p <- plot_grid(l[[1]], l[[2]], l[[3]], l[[4]], l[[5]],
-          l[[6]], l[[7]], l[[8]], l[[9]], l[[10]],
-          l[[11]], l[[12]], l[[13]], l[[14]], l[[15]],
-          l[[16]], l[[17]], l[[18]], l[[19]], l[[20]],
-          l[[21]], nrow=5, ncol=5
-          )
+tmbData <- read.table('~/Desktop/mnt/juno/work/taylorlab/friedman/myAdjustedDataFiles/mutations_TMB_and_MSI_stats.txt', sep='\t', header=TRUE)
 
-ggsave('~/Desktop/plot.pdf', plot=p,  width = 30, height = 30, units = c("in"))
+#FIND THE DISTRIBUTIONS AND SAVE THEM IF NEEDED
+find_and_save_all_distributions(tmbData, minNSamples=100, 
+    writeData=TRUE, writePath ='~/Desktop/mnt/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/')
 
+#MAKE THE BIG COMINED PLOT
+listOfPlots <- load_and_plot_all_distributions()
+p <- plot_grid(plotlist=listOfPlots)
+plotWithTitleAndCaption <- plot_grid(ggplot()+ggtitle('Hypermutation Classification')+theme(plot.title=element_text(size=50)),
+                                    p, ggplot()+labs(caption='plotAndDefineHypermutationThreshold.R\ngenerate_mut_classification_figure#1a#.ipynb'),
+                                    nrow=3, rel_heights = c(.1,1,.1))
+                                    
+ggsave('~/Desktop/plot.pdf', plot=plotWithTitleAndCaption,  width = 60, height = 20, units = c("in"), limitsize = FALSE)
+
+#make the smaller plot as figure 1a.
+
+endometrialData <- read.table('~/Desktop/mnt/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/Endometrial_Cancer.tsv', sep='\t', header=TRUE)
+colorectalData <- read.table('~/Desktop/mnt/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/Colorectal_Cancer.tsv', sep='\t', header=TRUE)
+bladderData <- read.table('~/Desktop/mnt/juno/work/taylorlab/friedman/hypermutationAnalysisProj/projectDataAndConfigFiles/hypermutationStatusIds/Bladder_Cancer.tsv', sep='\t', header=TRUE)
+
+pEndo <- plot_distribution(endometrialData, title='Endometrial Cancer')
+pColo <- plot_distribution(colorectalData, title='Colorectal Cancer')
+pBladder <- plot_distribution(bladderData, title='Bladder Cancer')
+legend <- get_legend(plot_distribution(endometrialData, title='endo', hideLegend=FALSE))
+alignedPlot <- plot_grid(pEndo, pColo, pBladder, nrow=3)
+alignedPlotWithLegend <- plot_grid(alignedPlot, legend, ncol=2, rel_widths = c(1,.5))
+
+finalPlot <- plot_grid(alignedPlotWithLegend, ggplot()+labs(caption='plotAndDefineHypermutationThreshold.R\ngenerate_mut_classification_figure#1a#.ipynb'), nrow=2, rel_heights=c(1,.1))
+ggsave('~/Desktop/plot.pdf', plot=finalPlot,  width = 16, height = 12, units = c("in"), limitsize = FALSE)
+
+#
+####
+##########
+################
+##########
+###
+#
+#OLD CODE
+
+
+#obj = densityMclust(Y, G=2)
 
