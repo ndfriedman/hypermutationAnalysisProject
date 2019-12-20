@@ -77,7 +77,8 @@ runDnDsCv.R
 # Figure 4
 
 CLONALITY MAF:
-get CNCF filename info with: 'myUtils/create_cncf_or_rdata_file_list.py'
+get CNCF filename info with: 'python myUtils/create_cncf_or_rdata_file_list.py'
+file is by default written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/cncf_filenames.txt
 <br>
 <br>
 <br>
