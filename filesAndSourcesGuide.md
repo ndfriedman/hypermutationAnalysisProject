@@ -76,11 +76,12 @@ runDnDsCv.R
 
 # Figure 4
 
-CLONALITY MAF:
+##CLONALITY MAF:
 get CNCF filename info with: 'python myUtils/create_cncf_or_rdata_file_list.py'
 file is by default written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/cncf_filenames.txt
 
 Using: myUtils/runAnnotateMaf.R ,file for hypermutated cases is written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/filteredMaf_Nov19_2019_hypermutantOnly_withCNCFAnnotation.maf
+Manually generate facets whitelist and blacklist for flat genomes (include) and bad fits (exclude). This leads to 805 cases we will analyze for clonality
 
 
 <br>
