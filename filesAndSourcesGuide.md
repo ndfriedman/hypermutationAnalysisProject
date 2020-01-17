@@ -85,7 +85,7 @@ Manually generate facets whitelist and blacklist for flat genomes (include) and 
 
 ##MULTIPLE SAMPLE ANALYSES
 run signatures on a maf with all mutations labeled based on the branch they are on
-/juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutantMultipleSamplesLabeledByBranch.tsv
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/HypermutantMultipleSamplesBranchMutationalSignatures.tsv
 
 <br>
 <br>
