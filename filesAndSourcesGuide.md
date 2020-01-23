@@ -76,6 +76,8 @@ runDnDsCv.R
 
 # Figure 4
 
+#pairs info
+
 ##CLONALITY MAF:
 get CNCF filename info with: 'python myUtils/create_cncf_or_rdata_file_list.py'
 file is by default written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/cncf_filenames.txt
