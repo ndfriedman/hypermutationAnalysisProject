@@ -76,7 +76,7 @@ runDnDsCv.R
 
 # Figure 4
 
-#pairs info
+#pairs info /juno/work/taylorlab/friedman/myAdjustedDataFiles/pairsDataFromCraig.txt
 
 ##CLONALITY MAF:
 get CNCF filename info with: 'python myUtils/create_cncf_or_rdata_file_list.py'
