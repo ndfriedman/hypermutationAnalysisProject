@@ -74,6 +74,9 @@ runDnDsCv.R
 
 # Figure 3
 
+Megatron exomes: /juno/work/ccs/gongy/megatron_Jan5th/Result/cohort_level/mut_somatic.maf
+MC3 maf: /Users/friedman/Desktop/stuffForNov25/mc3.v0.2.8.PUBLIC.LAML_PATCH_prepped_facets_oncokb.maf
+
 # Figure 4
 
 #pairs info /juno/work/taylorlab/friedman/myAdjustedDataFiles/pairsDataFromCraig.txt
