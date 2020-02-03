@@ -77,6 +77,8 @@ runDnDsCv.R
 Megatron exomes: /juno/work/ccs/gongy/megatron_Jan5th/Result/cohort_level/mut_somatic.maf
 MC3 maf: /Users/friedman/Desktop/stuffForNov25/mc3.v0.2.8.PUBLIC.LAML_PATCH_prepped_facets_oncokb.maf
 
+TCGA gene sizes: /juno/work/taylorlab/friedman/myAdjustedDataFiles/all_gene_coding_sequences.tsv
+
 # Figure 4
 
 #pairs info /juno/work/taylorlab/friedman/myAdjustedDataFiles/pairsDataFromCraig.txt
