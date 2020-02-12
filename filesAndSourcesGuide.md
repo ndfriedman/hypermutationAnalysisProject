@@ -81,6 +81,10 @@ MC3 maf: /Users/friedman/Desktop/stuffForNov25/mc3.v0.2.8.PUBLIC.LAML_PATCH_prep
 
 TCGA gene sizes: /juno/work/taylorlab/friedman/myAdjustedDataFiles/all_gene_coding_sequences.tsv
 
+####MUTATION ATTRIBUTION
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/sigAttribution_hypermutators.tsv
+generated with python attribute_mutations_to_signatures.py /juno/work/taylorlab/friedman/noahFirstProject/signature_sig_copy/mutation-signatures/Stratton_signatures30.txt .1 10 /juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutants_only_signatures_nov19.txt /juno/work/taylorlab/friedman/myAdjustedDataFiles/sigAttribution_hypermutators.tsv agingIsAlwaysPresent doSmokingCorrection
+
 # Figure 4
 
 #pairs info /juno/work/taylorlab/friedman/myAdjustedDataFiles/pairsDataFromCraig.txt
