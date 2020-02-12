@@ -8,6 +8,7 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 **MAF with oncogkb and hotspot annotations**: 
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_nov19_2019.maf
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_sigContext_nov19_2019.maf
+hypermutants only: /juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutantsOnly_nov19.maf
 
 add trinuc and quadnuc information with python /ifs/work/taylorlab/friedman/myUtils/mutationSigUtils.py --mode trinucOnly --inputMaf /ifs/work/taylorlab/friedman/myAdjustedDataFiles/impactMafs/data_mutations_unfiltered_reviewed_oncokb.txt --outputDir /ifs/work/taylorlab/friedman/myAdjustedDataFiles --outputFilename annotatedOncoPlusHotspotMafAllImpact_trinuc
 followed by the mutationSigUtils.create_reference_four_nuc() function
