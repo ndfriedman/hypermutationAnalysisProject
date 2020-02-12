@@ -24,6 +24,7 @@ followed by the mutationSigUtils.create_reference_four_nuc() function
 
 **Text file with IMPACT signature decompositions from Alex Penson**
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019.tsv
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutants_only_signatures_nov19.txt
 --note the tmb and nmut values alex generated were overwritten and replaced with stuff from chai
 --I added information about dominant signatures here too
 
