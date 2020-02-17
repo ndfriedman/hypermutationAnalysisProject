@@ -8,6 +8,7 @@ all files copied from /juno/work/ccs/resources/impact/cbio_mutations on nov 19th
 **MAF with oncogkb and hotspot annotations**: 
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_nov19_2019.maf
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/data_mutations_extended_annotated_sigContext_nov19_2019.maf
+hypermutants only: /juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutantsOnly_nov19.maf
 
 add trinuc and quadnuc information with python /ifs/work/taylorlab/friedman/myUtils/mutationSigUtils.py --mode trinucOnly --inputMaf /ifs/work/taylorlab/friedman/myAdjustedDataFiles/impactMafs/data_mutations_unfiltered_reviewed_oncokb.txt --outputDir /ifs/work/taylorlab/friedman/myAdjustedDataFiles --outputFilename annotatedOncoPlusHotspotMafAllImpact_trinuc
 followed by the mutationSigUtils.create_reference_four_nuc() function
@@ -23,6 +24,7 @@ followed by the mutationSigUtils.create_reference_four_nuc() function
 
 **Text file with IMPACT signature decompositions from Alex Penson**
 /juno/work/taylorlab/friedman/myAdjustedDataFiles/impactSignatureCalls_Nov20_2019.tsv
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutants_only_signatures_nov19.txt
 --note the tmb and nmut values alex generated were overwritten and replaced with stuff from chai
 --I added information about dominant signatures here too
 
@@ -71,6 +73,35 @@ runDnDsCv.R
 #### figure 2d
 
 #### figure 2e
+
+# Figure 3
+
+Megatron exomes: /juno/work/ccs/gongy/megatron_Jan5th/Result/cohort_level/mut_somatic.maf
+MC3 maf: /Users/friedman/Desktop/stuffForNov25/mc3.v0.2.8.PUBLIC.LAML_PATCH_prepped_facets_oncokb.maf
+
+TCGA gene sizes: /juno/work/taylorlab/friedman/myAdjustedDataFiles/all_gene_coding_sequences.tsv
+
+####MUTATION ATTRIBUTION
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/sigAttribution_hypermutators.tsv
+generated with python attribute_mutations_to_signatures.py /juno/work/taylorlab/friedman/noahFirstProject/signature_sig_copy/mutation-signatures/Stratton_signatures30.txt .1 10 /juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutants_only_signatures_nov19.txt /juno/work/taylorlab/friedman/myAdjustedDataFiles/sigAttribution_hypermutators.tsv agingIsAlwaysPresent doSmokingCorrection
+
+# Figure 4
+
+#pairs info /juno/work/taylorlab/friedman/myAdjustedDataFiles/pairsDataFromCraig.txt
+
+##CLONALITY MAF:
+get CNCF filename info with: 'python myUtils/create_cncf_or_rdata_file_list.py'
+file is by default written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/cncf_filenames.txt
+
+Using: myUtils/runAnnotateMaf.R ,file for hypermutated cases is written to: /juno/work/taylorlab/friedman/myAdjustedDataFiles/filteredMaf_Nov19_2019_hypermutantOnly_withCNCFAnnotation.maf
+Manually generate facets whitelist and blacklist for flat genomes (include) and bad fits (exclude). This leads to 805 cases we will analyze for clonality
+
+##MULTIPLE SAMPLE ANALYSES
+run signatures on a maf with all mutations labeled based on the branch they are on
+maf: /juno/work/taylorlab/friedman/myAdjustedDataFiles/hypermutantMultipleSamplesLabeledByBranch.tsv
+/juno/work/taylorlab/friedman/myAdjustedDataFiles/HypermutantMultipleSamplesBranchMutationalSignatures.tsv
+attribute mutations with: 
+
 <br>
 <br>
 <br>
