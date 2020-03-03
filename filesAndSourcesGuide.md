@@ -148,7 +148,7 @@ expected truncating, hotspot and oncogenic rates by gene for all hypermutated ca
 expected rates for tcga hypermutated cases: /ifs/work/taylorlab/friedman/hypermutationAnalysisProj/mutSimulation/expectedMutationTables/tcgaHypermutatorsExpectedGeneMutInfo.tsv
 
 TCGA
-
+mc3maf: /ifs/res/taylorlab/ang46/ext/mafs/mc3/mc3.v0.2.8.PUBLIC.LAML_PATCH_prepped_facets_oncokb.maf
 
 
 
